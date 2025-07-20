@@ -10,6 +10,7 @@ async function handleFormSubmit(event){
         const{message,data:user} = res.data;
         console.log(message);
         console.log("user", user);
+        window.location.href="./expenses.html"
         return;
     } catch (error) {
         handleErrorMessage(error);

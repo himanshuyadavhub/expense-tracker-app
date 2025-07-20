@@ -3,9 +3,11 @@ const app = express();
 const cors = require('cors');
 const sequelize = require('./utils/db-connection');
 const User = require("./models/Users");
+const Expense = require("./models/Expenses");
 
 
 const userRoutes = require("./routes/userRoutes");
+const expenseRoutes = require("./routes/expenseRoutes");
 
 
 
@@ -13,6 +15,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use("/user",userRoutes);
+app.use("/expense",expenseRoutes);
 app.get("/",(req,res)=>{
     res.send("Server is running perfectly fine.");
 })
