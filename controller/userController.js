@@ -7,7 +7,6 @@ async function createUser(req,res){
         const {userName,email,password} = req.body;
         let user = await User.findOne({where:{email}});
         if(user){
-            console.log("Error: createUser",error.message);
             return sendResponse.badRequest(res,"Email Id already used")
         }
 
@@ -26,6 +25,24 @@ async function createUser(req,res){
     }
 }
 
+async function loginUser(req,res){
+    try {
+        const {email,password} = req.body;
+        const user = await User.findOne({where:{email}});
+        if(!user){
+            return sendResponse.notFound(res,"Email not registered!")
+        }
+        if(password !== user.password){
+            return sendResponse.notAuthorized(res,"Incorrect password!");
+        }
+        return sendResponse.ok(res,"User logged In",user);
+    } catch (error) {
+        console.log("Error: loginUser",error.message);
+        sendResponse.serverError(res,"Server Error: User login failed!")
+    }
+}
+
 module.exports = {
-    createUser
+    createUser,
+    loginUser
 }

@@ -8,6 +8,10 @@ function badRequest(res,message){
     return res.status(400).json({message});
 }
 
+function notAuthorized(res,message){
+    return res.status(401).json({message});
+}
+
 function serverError(res,message){
     return res.status(500).json({message});
 }
@@ -26,6 +30,7 @@ module.exports = {
     notFound,
     badRequest,
     serverError,
+    notAuthorized,
     ok,
     created
 }

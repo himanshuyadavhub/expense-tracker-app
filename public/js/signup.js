@@ -8,14 +8,11 @@ async function handleFormSubmit(event){
         const password = event.target.password.value;
         
         const res = await axios.post(url+"/create",{userName,email,password});
-        const createdUser = res.data.data;
-        if(res.status === 400){
-            alert(res.data.message);
-            return;
-        }
+        const {message,data:createdUser} = res.data;
+        console.log(message);
         console.log(createdUser)
         event.target.reset();
     } catch (error) {
-        console.log("Form submission failed!",error.message);
+        console.log("Form submission failed!",error);
     }
 }
