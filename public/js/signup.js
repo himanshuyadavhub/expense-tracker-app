@@ -10,9 +10,18 @@ async function handleFormSubmit(event){
         const res = await axios.post(url+"/create",{userName,email,password});
         const {message,data:createdUser} = res.data;
         console.log(message);
-        console.log(createdUser)
         event.target.reset();
     } catch (error) {
-        console.log("Form submission failed!",error);
+        handleErrorMessage(error)
+    }
+}
+
+function handleErrorMessage(error) {
+    if (error.response) {
+        alert(`${error.response.status} - ${error.response.data?.message || error.response.statusText}`);
+    } else if (error.request) {
+        console.log(`No response from server. Please check your network or server status.`) ;
+    } else {
+        console.log(`Error: ${error.message}`);
     }
 }

@@ -12,6 +12,16 @@ async function handleFormSubmit(event){
         console.log("user", user);
         return;
     } catch (error) {
-        console.log("Login failed!",error.message);
+        handleErrorMessage(error);
+    }
+}
+
+function handleErrorMessage(error) {
+    if (error.response) {
+        alert(`${error.response.data?.message || error.response.statusText}`);
+    } else if (error.request) {
+        console.log(`No response from server. Please check your network or server status.`) ;
+    } else {
+        console.log(`Error: ${error.message}`);
     }
 }

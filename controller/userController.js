@@ -1,5 +1,6 @@
 const sendResponse = require("../utils/sendResponse");
 const User = require("../models/Users");
+const bcrypt = require('bcrypt');
 
 
 async function createUser(req,res){
@@ -9,11 +10,11 @@ async function createUser(req,res){
         if(user){
             return sendResponse.badRequest(res,"Email Id already used")
         }
-
+        const hash = await bcrypt.hash(password,10);
         user = {
             userName,
             email,
-            password
+            password:hash
         }
 
         const createdUser = await User.create(user);
@@ -32,7 +33,8 @@ async function loginUser(req,res){
         if(!user){
             return sendResponse.notFound(res,"Email not registered!")
         }
-        if(password !== user.password){
+        const isMatch = await bcrypt.compare(password,user.password);
+        if(!isMatch){
             return sendResponse.notAuthorized(res,"Incorrect password!");
         }
         return sendResponse.ok(res,"User logged In",user);
