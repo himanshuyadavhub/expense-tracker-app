@@ -1,12 +1,13 @@
 const sendResponse = require("../utils/sendResponse");
-const User = require("../models/Users");
+const {Users} = require("../models/associations");
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 
 async function createUser(req,res){
     try {
         const {userName,email,password} = req.body;
-        let user = await User.findOne({where:{email}});
+        let user = await Users.findOne({where:{email}});
         if(user){
             return sendResponse.badRequest(res,"Email Id already used")
         }
@@ -17,7 +18,7 @@ async function createUser(req,res){
             password:hash
         }
 
-        const createdUser = await User.create(user);
+        const createdUser = await Users.create(user);
         return sendResponse.created(res,"User created!",createdUser);
 
     } catch (error) {
@@ -29,7 +30,7 @@ async function createUser(req,res){
 async function loginUser(req,res){
     try {
         const {email,password} = req.body;
-        const user = await User.findOne({where:{email}});
+        const user = await Users.findOne({where:{email}});
         if(!user){
             return sendResponse.notFound(res,"Email not registered!")
         }
@@ -37,12 +38,15 @@ async function loginUser(req,res){
         if(!isMatch){
             return sendResponse.notAuthorized(res,"Incorrect password!");
         }
-        return sendResponse.ok(res,"User logged In",user);
+        const token = jwt.sign({userId:user.id},"JustASecretKey")
+        return sendResponse.ok(res,"User logged In",{token});
     } catch (error) {
         console.log("Error: loginUser",error.message);
         sendResponse.serverError(res,"Server Error: User login failed!")
     }
 }
+
+
 
 module.exports = {
     createUser,

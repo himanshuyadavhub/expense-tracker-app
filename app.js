@@ -2,8 +2,7 @@ const express = require('express');
 const app = express();
 const cors = require('cors');
 const sequelize = require('./utils/db-connection');
-const User = require("./models/Users");
-const Expense = require("./models/Expenses");
+const {Users,Expenses} = require('./models/associations');
 
 
 const userRoutes = require("./routes/userRoutes");

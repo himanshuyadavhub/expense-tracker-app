@@ -7,9 +7,9 @@ async function handleFormSubmit(event){
         const password = event.target.password.value;
         
         const res = await axios.post(url+"/login",{email,password});
-        const{message,data:user} = res.data;
+        const{message,data} = res.data;
         console.log(message);
-        console.log("user", user);
+        localStorage.setItem("token",data.token);
         window.location.href="./expenses.html"
         return;
     } catch (error) {

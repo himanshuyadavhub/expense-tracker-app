@@ -1,5 +1,6 @@
 const url = "http://localhost:5000/expense"
 let editExpenseId = null;
+const token = localStorage.getItem("token");
 
 document.addEventListener('DOMContentLoaded', showExpenses);
 
@@ -12,9 +13,9 @@ async function handleFormSubmit(event) {
 
         let res;
         if (editExpenseId) {
-            res = await axios.put(url + `/update/${editExpenseId}`, { amount, description, category });
+            res = await axios.put(url + `/update/${editExpenseId}`, { amount, description, category },{headers:{token}});
         } else {
-            res = await axios.post(url + "/add", { amount, description, category });
+            res = await axios.post(url + "/add", { amount, description, category },{headers:{token}});
         }
 
         const { message, data: expense } = res.data;
@@ -41,7 +42,7 @@ async function showExpenses() {
         const expensesList = document.getElementById('expenses-list');
         expensesList.innerHTML = '';
 
-        const result = await axios.get(url + "/get")
+        const result = await axios.get(url + "/get",{headers:{token}})
         const { message, data: expenses } = result.data;
 
         expenses.forEach((expense) => {
@@ -52,7 +53,7 @@ async function showExpenses() {
     }
 }
 
-function editExpense(expense) {
+function editExpenseHandler(expense) {
     document.getElementById('amount').value = expense.amount;
     document.getElementById('description').value = expense.description;
     document.getElementById('category').value = expense.category;
@@ -61,9 +62,9 @@ function editExpense(expense) {
     document.getElementById('submit-btn').textContent = "Update Expense";
 }
 
-async function deleteExpense(expenseId) {
+async function deleteExpenseHandler(expenseId) {
     try {
-        const res = await axios.delete(url + `/delete/${expenseId}`);
+        const res = await axios.delete(url + `/delete/${expenseId}`, {headers:{token}});
         console.log(res.data.message);
         const listItem = document.getElementById(expenseId);
         if (listItem) listItem.remove();
@@ -106,11 +107,11 @@ function createExpenseItem(expense) {
     `;
 
     const editBtn = createButton("Edit", "edit-btn");
-    editBtn.addEventListener('click', () => editExpense(expense));
+    editBtn.addEventListener('click', () => editExpenseHandler(expense));
     listItem.appendChild(editBtn);
 
     const deleteBtn = createButton("Delete", "delete-btn");
-    deleteBtn.addEventListener('click', () => deleteExpense(expense.id));
+    deleteBtn.addEventListener('click', () => deleteExpenseHandler(expense.id));
     listItem.appendChild(deleteBtn);
 
     return listItem;
