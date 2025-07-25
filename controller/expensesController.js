@@ -1,5 +1,18 @@
-const { Expenses } = require("../models/associations");
+const { Expenses, Users } = require("../models/associations");
+const sequelize = require("../utils/db-connection");
 const sendResponse = require("../utils/sendResponse");
+const path = require('path');
+
+
+function renderExpensePage(req,res){
+    try {
+        const pathName= path.join(__dirname,"../public/views/expenses.html");
+        res.sendFile(pathName);
+    } catch (error) {
+        console.log("Error: renderExpensePage", error.message);
+        return sendResponse.notFound(res, "Getting expenses failed!")
+    }
+}
 
 async function addExpense(req, res) {
     try {
@@ -37,7 +50,7 @@ async function updateExpense(req, res) {
         if (updatedCount === 0) {
             return sendResponse.notFound(res, `Expense with id ${id} not found!`);
         }
-        const expense = await Expenses.findOne({where:{id, userId}});
+        const expense = await Expenses.findOne({ where: { id, userId } });
         return sendResponse.ok(res, "Expense updated!", expense);
 
     } catch (error) {
@@ -61,9 +74,12 @@ async function deleteExpense(req, res) {
     }
 }
 
+
+
 module.exports = {
+    renderExpensePage,
     addExpense,
     getAllExpenses,
     updateExpense,
-    deleteExpense
+    deleteExpense,
 }

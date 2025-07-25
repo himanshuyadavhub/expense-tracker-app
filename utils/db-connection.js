@@ -1,7 +1,7 @@
 const Sequelize = require('sequelize');
 
 
-const sequelize = new Sequelize("expensesApp","root","Server123",{host:"localhost",dialect:"mysql"});
+const sequelize = new Sequelize("expensesapp","root","Server123", {host:"localhost",dialect:"mysql", logging:false});
 
 async function checkDbConnection(sequelize){
     try {

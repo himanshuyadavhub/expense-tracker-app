@@ -10,7 +10,8 @@ async function handleFormSubmit(event){
         const{message,data} = res.data;
         console.log(message);
         localStorage.setItem("token",data.token);
-        window.location.href="./expenses.html"
+        localStorage.setItem("isPremiumUser",data.isPremiumUser);
+        window.location.href="http://localhost:5000/expense";
         return;
     } catch (error) {
         handleErrorMessage(error);
