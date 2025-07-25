@@ -85,12 +85,11 @@ async function showLeaderboard() {
         const leaderboardList = document.getElementById('leaderboard-list');
         leaderboardList.innerHTML = "";
 
-        const result = await axios.get("http://localhost:5000/user/leaderboard");
+        const result = await axios.get("http://localhost:5000/feature/leaderboard", {headers:{token}});
         const { message, data: leaderboard } = result.data;
-        console.log(leaderboard)
 
         leaderboard.forEach(expenseSummary => {
-            const amount = expenseSummary.totalAmount ? expenseSummary.totalAmount : 0;
+            const amount = expenseSummary.totalExpense ? expenseSummary.totalExpense : 0;
             leaderboardList.appendChild(createLeaderboardItem(amount, expenseSummary.userName));
         })
 

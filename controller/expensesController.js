@@ -4,9 +4,9 @@ const sendResponse = require("../utils/sendResponse");
 const path = require('path');
 
 
-function renderExpensePage(req,res){
+function renderExpensePage(req, res) {
     try {
-        const pathName= path.join(__dirname,"../public/views/expenses.html");
+        const pathName = path.join(__dirname, "../public/views/expenses.html");
         res.sendFile(pathName);
     } catch (error) {
         console.log("Error: renderExpensePage", error.message);
@@ -19,6 +19,9 @@ async function addExpense(req, res) {
         const userId = req.userId;
         const { amount, description, category } = req.body;
         const expense = await Expenses.create({ amount, description, category, userId });
+        const user = await Users.findByPk(userId);
+        user.totalExpense= Number(user.totalExpense) + Number(amount);
+        await user.save();
         return sendResponse.created(res, "Expenses added!", expense);
     } catch (error) {
         console.log("Error: addExpense", error.message);
@@ -46,11 +49,21 @@ async function updateExpense(req, res) {
         const id = req.params.id;
         const userId = req.userId;
         const { amount, description, category } = req.body;
-        const [updatedCount] = await Expenses.update({ amount, description, category }, { where: { id, userId } });
-        if (updatedCount === 0) {
+
+        const expense = await Expenses.findOne({ where: { id, userId } });
+
+        if (!expense) {
             return sendResponse.notFound(res, `Expense with id ${id} not found!`);
         }
-        const expense = await Expenses.findOne({ where: { id, userId } });
+        const user = await Users.findByPk(userId);
+        user.totalExpense= Number(user.totalExpense) + Number(amount) - Number(expense.amount);
+        await user.save();
+
+        expense.amount = amount;
+        expense.description = description;
+        expense.category = category;
+        await expense.save();
+
         return sendResponse.ok(res, "Expense updated!", expense);
 
     } catch (error) {
@@ -63,6 +76,11 @@ async function deleteExpense(req, res) {
     try {
         const userId = req.userId;
         const id = req.params.id;
+        const expense = await Expenses.findOne({where:{id,userId}});
+        const user = await Users.findByPk(userId);
+        user.totalExpense= Number(user.totalExpense) - Number(expense.amount);
+        await user.save();
+
         const deletedExpenseCount = await Expenses.destroy({ where: { id, userId } });
         if (deletedExpenseCount === 0) {
             return sendResponse.notFound(res, `Expense with id ${id} not found!`)

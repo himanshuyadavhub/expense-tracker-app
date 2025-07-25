@@ -58,25 +58,7 @@ async function loginUser(req, res) {
     }
 }
 
-async function getUsersExpensesSummary(req, res) {
-    try {
-        const allUsersExpensesSummary = await Users.findAll({
-            attributes: [ "userName", [sequelize.fn("SUM", sequelize.col("expenses.amount")), "totalAmount"]],
-            include:[{
-                model:Expenses,
-                attributes:[]
-            }],
-            group: ["user.id"],
-            order:[["totalAmount", "DESC"]]
-        });
-        
-        sendResponse.ok(res, "Users and Expenses:", allUsersExpensesSummary);
 
-    } catch (error) {
-        console.log("Error: getUsersExpensesSummary", error.message);
-        return sendResponse.serverError(res, "Getting Leaderboard failed!")
-    }
-}
 
 
 
@@ -84,5 +66,4 @@ module.exports = {
     renderLoginPage,
     createUser,
     loginUser,
-    getUsersExpensesSummary
 }
