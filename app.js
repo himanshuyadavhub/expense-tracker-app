@@ -7,7 +7,7 @@ const path = require('path');
 
 const userRoutes = require("./routes/userRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
-const premiumRoutes = require("./routes/premiumRoutes");
+const membershipRoutes = require("./routes/membershipRoutes");
 const featuresRoutes = require("./routes/premiumFeaturesRoutes");
 
 app.use(cors());
@@ -16,7 +16,7 @@ app.use(express.static(path.join(__dirname, "public")));
 
 app.use("/user", userRoutes);
 app.use("/expense", expenseRoutes);
-app.use("/premium", premiumRoutes);
+app.use("/premium", membershipRoutes);
 app.use("/feature", featuresRoutes);
 app.get("/", (req, res) => {
     res.json({message:"Respose after creating payment order"});

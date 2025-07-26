@@ -15,15 +15,21 @@ function renderExpensePage(req, res) {
 }
 
 async function addExpense(req, res) {
+    const transaction = await sequelize.transaction();
     try {
         const userId = req.userId;
         const { amount, description, category } = req.body;
-        const expense = await Expenses.create({ amount, description, category, userId });
-        const user = await Users.findByPk(userId);
+
+        const expense = await Expenses.create({ amount, description, category, userId }, {transaction});
+
+        const user = await Users.findByPk(userId, {transaction});
         user.totalExpense= Number(user.totalExpense) + Number(amount);
-        await user.save();
+        await user.save({transaction});
+
+        await transaction.commit();
         return sendResponse.created(res, "Expenses added!", expense);
     } catch (error) {
+        await transaction.rollback();
         console.log("Error: addExpense", error.message);
         return sendResponse.serverError(res, "Adding expense failed!")
     }
@@ -45,48 +51,61 @@ async function getAllExpenses(req, res) {
 }
 
 async function updateExpense(req, res) {
+    const transaction = await sequelize.transaction();
+
     try {
         const id = req.params.id;
         const userId = req.userId;
         const { amount, description, category } = req.body;
 
-        const expense = await Expenses.findOne({ where: { id, userId } });
+        const expense = await Expenses.findOne({ where: { id, userId } }, {transaction});
 
         if (!expense) {
+            await transaction.rollback();
             return sendResponse.notFound(res, `Expense with id ${id} not found!`);
         }
-        const user = await Users.findByPk(userId);
+        const user = await Users.findByPk(userId, {transaction});
         user.totalExpense= Number(user.totalExpense) + Number(amount) - Number(expense.amount);
-        await user.save();
+        await user.save({transaction});
 
         expense.amount = amount;
         expense.description = description;
         expense.category = category;
-        await expense.save();
+        await expense.save({transaction});
+
+        await transaction.commit();
 
         return sendResponse.ok(res, "Expense updated!", expense);
 
     } catch (error) {
+        await transaction.rollback();
         console.log("Error: updateExpense", error.message);
         return sendResponse.serverError(res, "Updating expense failed!")
     }
 }
 
 async function deleteExpense(req, res) {
+    const transaction = await sequelize.transaction();
+
     try {
         const userId = req.userId;
         const id = req.params.id;
-        const expense = await Expenses.findOne({where:{id,userId}});
-        const user = await Users.findByPk(userId);
-        user.totalExpense= Number(user.totalExpense) - Number(expense.amount);
-        await user.save();
-
-        const deletedExpenseCount = await Expenses.destroy({ where: { id, userId } });
-        if (deletedExpenseCount === 0) {
-            return sendResponse.notFound(res, `Expense with id ${id} not found!`)
+        const expense = await Expenses.findOne({where:{id,userId}}, {transaction});
+        if(!expense){
+            await transaction.rollback();
+            return sendResponse.notFound(res, `Expense with id ${id} not found!`);
         }
+
+        const user = await Users.findByPk(userId, {transaction});
+        user.totalExpense= Number(user.totalExpense) - Number(expense.amount);
+        await user.save({transaction});
+
+        await expense.destroy({ where: { id, userId } }, {transaction});
+        
+        await transaction.commit();
         return sendResponse.ok(res, `Expense with id ${id} deleted successfully!`);
     } catch (error) {
+        await transaction.rollback();
         console.log("Error: deleteExpense", error.message);
         return sendResponse.serverError(res, "Deleting expense failed!")
     }
