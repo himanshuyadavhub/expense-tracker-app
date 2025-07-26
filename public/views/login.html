@@ -1,23 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Expenses Tracker - login</title>
     <link rel="stylesheet" href="../css/login.css">
 </head>
+
 <body>
     <div class="login-form-container">
-        <form onsubmit="handleFormSubmit(event)">
+        <form onsubmit="handleLoginFormSubmit(event)">
             <label for="email">Email: </label>
             <input type="email" name="email" id="email" required>
             <label for="password">Password: </label>
             <input type="password" name="password" id="password" required>
-            <button type="submit">Log In</button>
-            <a href="./signup.html">New User - SignUp Now</a>
+            <button type="submit" class="login-btn" id="login-btn">Log In</button>
         </form>
     </div>
+    <div class="forgot-password-form-container" style="display: none;">
+        <form onsubmit="handleForgotPasswordFormSubmit(event)">
+            <label for="forgot-email">Enter your registered email:</label>
+            <input type="email" name="forgotEmail" id="forgot-email" required />
+            <button type="submit">Send Reset Link</button>
+        </form>
+    </div>
+
+    <div class="other-actions-container">
+        <button type="button" class="reset-password-btn" id="reset-password-btn" onclick="handleForgotPassword()">Forgot
+            Password</button>
+        <a href="http://localhost:5000/user/create">New User-SignUp Now</a>
+    </div>
+
 </body>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"></script>
 <script src="../js/login.js"></script>
+
 </html>

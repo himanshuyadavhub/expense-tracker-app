@@ -1,7 +1,8 @@
 const { Cashfree, CFEnvironment } = require('cashfree-pg');
+const config = require("../config");
 
-const CASHFREE_API_KEY = "TEST430329ae80e0f32e41a393d78b923034";
-const CASHFREE_SECRET_KEY = "TESTaf195616268bd6202eeb3bf8dc458956e7192a85";
+const CASHFREE_API_KEY = config.cashfree_api_key;
+const CASHFREE_SECRET_KEY = config.cashfree_secret_key;
 
 const cashfree = new Cashfree(CFEnvironment.SANDBOX, CASHFREE_API_KEY, CASHFREE_SECRET_KEY);
 
