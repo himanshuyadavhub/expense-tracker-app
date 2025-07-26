@@ -111,15 +111,12 @@ function handlePremiumDiv() {
         text.textContent = "You are a Premium User!";
         premiumDiv.appendChild(text);
 
-        const leaderboardDiv = document.createElement("div");
-        leaderboardDiv.id = "leaderboard-container";
-        leaderboardDiv.className = "leaderboard-container";
+        const leaderboardDiv = document.querySelector(".leaderboard-container");
         leaderboardDiv.innerHTML = `
             <h2>Leaderboard:</h2>
             <ul id="leaderboard-list"></ul>
             <button id="leaderboard-btn" class="leaderboard-btn" onclick="showLeaderboard()">Show Leaderboard</button>
         `;
-        premiumDiv.appendChild(leaderboardDiv);
     }
 }
 
@@ -161,9 +158,6 @@ async function buyPremiumHandler() {
             // This will be true whenever user clicks on close icon inside the modal or any error happens during the payment
             console.log("paymentResult.error", paymentResult.error);
         }
-
-
-
     } catch (error) {
         handleErrorMessage(error);
     }

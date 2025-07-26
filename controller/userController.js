@@ -87,10 +87,12 @@ async function sendResetPasswordLink(req, res) {
         const resetLink = `http://localhost:5000/user/resetpassword/${requestId}`;
 
         const result = await emailServices.sendResetLink("kunal.singh.temp@gmail.com", user.userName, resetLink);
-        console.log(result);
-        sendResponse.ok(res, "OK OK OK", result);
+        if(!result){
+            throw new Error("Reset password link was not sent!")
+        }
+        sendResponse.ok(res, "Reset password link sent!", result);
     } catch (error) {
-        console.error("Error in resetPassword:", error.message);
+        console.error("Error: sendResetPasswordLink:", error.message);
         sendResponse.serverError(res, "Reset link was not send");
     }
 }
@@ -100,41 +102,48 @@ async function renderResetPasswordPage(req, res) {
     try {
         const passwordRequest = await ForgotPasswordRequests.findByPk(requestId);
         if (!passwordRequest) {
-            throw new Error("Link does not exists");
+            sendResponse.badRequest(res, "Password reset Link does not exists!");
             return
         }
         if (!passwordRequest.isActive) {
-            throw new Error("Link no longer active");
+            sendResponse.badRequest(res, "Password reset Link has been expired!")
             return
         }
         const pathName = path.join(__dirname, "../public/views/forgotpassword.html");
         return res.sendFile(pathName);
     } catch (error) {
-        console.log("Error: updatePassword", error.message);
+        console.log("Error: renderResetPasswordPage", error.message);
     }
 }
 
 async function resetPassword(req, res) {
     const { password } = req.body;
     const requestId = req.params.requestId;
+    const transaction = await sequelize.transaction()
 
     try {
-        const passwordRequest = await ForgotPasswordRequests.findByPk(requestId);
+        const passwordRequest = await ForgotPasswordRequests.findByPk(requestId, {transaction});
         if (!passwordRequest || !passwordRequest.isActive) {
+            await transaction.rollback();
             sendResponse.badRequest(res, "Link does not exists or no longer active!")
             return
         };
         const userId = passwordRequest.userId;
-        const user = await Users.findByPk(userId);
+        const user = await Users.findByPk(userId, {transaction});
         if(!user){
+            await transaction.rollback();
             sendResponse.badRequest(res, "User not registered");
             return;
         };
         const hash = await bcrypt.hash(password, 10);
         user.password = hash;
-        await user.save();
+        await user.save({transaction});
+        passwordRequest.isActive = false;
+        await passwordRequest.save({transaction});
+        await transaction.commit();
         sendResponse.ok(res, "Password Updated!");
     } catch (error) {
+        await transaction.rollback();
         console.log("Error: resetPassword", error.message);
         return sendResponse.serverError(res, "Password updation failed " + error.message);
     }

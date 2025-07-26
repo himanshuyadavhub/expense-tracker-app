@@ -15,9 +15,10 @@ async function handleResetPasswordFormSubmit(event){
         
 
         const res = await axios.post(`http://localhost:5000/user/updatepassword/${requestId}`, {password});
-        const {message, data} = res.data;
+        const {message} = res.data;
         console.log(message);
-        console.log(data);
+        alert("Password updated");
+        window.location.href = "http://localhost:5000/user/login";
         return;
     } catch (error) {
         handleErrorMessage(error);

@@ -11,7 +11,7 @@ const sendEmail = async ( {toEmail, toName, subject, htmlContent} ) => {
 
         return await emailClient.sendTransacEmail(emailPayload);
     } catch (error) {
-        console.log("Error in sendEmail", error);
+        console.log("Error: sendEmail", error.message);
     }
 
 };

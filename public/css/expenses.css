@@ -52,8 +52,9 @@ body {
     background-color: #0056b3;
 }
 
-/* Premium Section */
-.premium-container {
+/* Buy Premium Section */
+.premium-container,
+.leaderboard-container{
     width: 80%;
     max-width: 600px;
     margin: 20px auto;
@@ -149,4 +150,15 @@ body {
 
 .delete-btn:hover {
     background-color: #c82333;
+}
+
+.summary-container {
+    width: 80%;
+    max-width: 600px;
+    margin: 20px auto;
+}
+.weekly-report {
+    width: 80%;
+    max-width: 600px;
+    margin: 20px auto;
 }

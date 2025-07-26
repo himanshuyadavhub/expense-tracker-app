@@ -29,7 +29,12 @@ async function handleForgotPasswordFormSubmit(event) {
     try {
         const email = event.target.forgotEmail.value.trim();
         const res = await axios.post(url + "/forgotpassword", { email });
-        console.log(res.data);
+        const { message } = res.data;
+        console.log(message);
+        alert("Password reset link has been sent on registered email!");
+        document.querySelector(".login-form-container").style.display = "block";
+        document.querySelector(".forgot-password-form-container").style.display = "none";
+
     } catch (error) {
         handleErrorMessage(error);
     }
