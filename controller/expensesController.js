@@ -1,4 +1,4 @@
-const { Expenses, Users } = require("../models/associations");
+const { Users, Expenses, Payments, ForgotPasswordRequests } = require('../models');
 const sequelize = require("../utils/db-connection");
 const sendResponse = require("../utils/sendResponse");
 const path = require('path');

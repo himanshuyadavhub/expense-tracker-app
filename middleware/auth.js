@@ -1,4 +1,4 @@
-const {Users} = require("../models/associations");
+const {Users} = require("../models");
 const jwt = require("jsonwebtoken");
 const sendResponse = require("../utils/sendResponse");
 

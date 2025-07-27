@@ -1,4 +1,4 @@
-const {Users} = require("../models/associations");
+const { Users, Expenses, Payments, ForgotPasswordRequests } = require('../models');
 const sendResponse = require("../utils/sendResponse");
 
 async function getLeaderboard(req, res) {

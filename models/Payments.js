@@ -1,15 +1,19 @@
-const {DataTypes} = require('sequelize');
-const sequelize = require("../utils/db-connection");
+const { DataTypes } = require('sequelize');
 
-const Payment = sequelize.define("payment",{
-    orderId:{
-        type:DataTypes.STRING,
-        primaryKey:true,
-    },
-    paymentStatus:{
-        type:DataTypes.STRING,
-        allowNull:false
-    }
-})
 
-module.exports = Payment;
+function createPaymentsSchema(sequelize, DataTypes) {
+    const Payments = sequelize.define("Payments", {
+        orderId: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+        },
+        paymentStatus: {
+            type: DataTypes.STRING,
+            allowNull: false
+        }
+    })
+    return Payments;
+}
+
+
+module.exports = createPaymentsSchema;

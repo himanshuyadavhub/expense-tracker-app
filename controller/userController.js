@@ -1,5 +1,5 @@
 const sendResponse = require("../utils/sendResponse");
-const { Users, Expenses, ForgotPasswordRequests } = require("../models/associations");
+const { Users, Expenses, Payments, ForgotPasswordRequests } = require('../models');
 const sequelize = require("../utils/db-connection");
 const config = require("../config");
 

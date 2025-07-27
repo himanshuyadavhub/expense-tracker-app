@@ -1,25 +1,29 @@
-const {DataTypes} = require('sequelize');
-const seqeuelize = require('../utils/db-connection');
-const sequelize = require('../utils/db-connection');
+const { DataTypes } = require('sequelize');
 
-const Expense = sequelize.define("expenses",{
-    id:{
-        type:DataTypes.INTEGER,
-        primaryKey:true,
-        autoIncrement:true
-    },
-    amount:{
-        type:DataTypes.INTEGER,
-        allowNull:false,
-    },
-    description:{
-        type:DataTypes.STRING,
-        allowNull:false,
-    },
-    category:{
-        type:DataTypes.STRING,
-        allowNull:false
-    }
-})
+function createExpensesSchema(sequelize, DataTypes) {
+    const Expenses = sequelize.define("Expenses", {
+        id: {
+            type: DataTypes.INTEGER,
+            primaryKey: true,
+            autoIncrement: true
+        },
+        amount: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+        },
+        description: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        },
+        category: {
+            type: DataTypes.STRING,
+            allowNull: false
+        }
+    })
+    Expenses.associate = (models) => {
+        Expenses.belongsTo(models.Users);
+    };
+    return Expenses;
+}
 
-module.exports = Expense;
+module.exports = createExpensesSchema;

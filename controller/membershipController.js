@@ -1,6 +1,6 @@
 const paymentServices = require("../services/paymentServices");
 const sendResponse = require("../utils/sendResponse");
-const {Payments, Users} = require("../models/associations");
+const { Users, Expenses, Payments, ForgotPasswordRequests } = require('../models');
 const path = require('path');
 
 

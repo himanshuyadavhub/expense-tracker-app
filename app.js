@@ -3,8 +3,6 @@ const app = express();
 const config = require("./config");
 const PORT= config.port;
 const cors = require('cors');
-const sequelize = require('./utils/db-connection');
-const { Users, Expenses } = require('./models/associations');
 const path = require('path');
 
 const userRoutes = require("./routes/userRoutes");
