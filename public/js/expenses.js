@@ -2,13 +2,30 @@ const url = "http://localhost:5000/expense"
 let editExpenseId = null;
 const token = localStorage.getItem("token");
 const isPremiumUser = localStorage.getItem("isPremiumUser");
+let itemsPerPage = localStorage.getItem("itemsPerPage") || 2;
+let totalCount;
+let currentPage = 1;
+let totalPages;
 
 const cashfree = Cashfree({ mode: "sandbox" });
 
 document.addEventListener('DOMContentLoaded', () => {
-    showExpenses()
-    handlePremiumDiv()
+    fetchExpensesByPageNo(currentPage, itemsPerPage);
+    handlePremiumDiv();
+    fetchTotalCountOfExpenses();
+    applyEventListeners();
+    if (isPremiumUser === "true") {
+        enablePremiumFeatures();
+    }
 });
+
+function applyEventListeners() {
+    document.getElementById("next-btn").addEventListener("click", nextButtonHandler);
+    document.getElementById("prev-btn").addEventListener("click", prevButtonHandler);
+    document.getElementById("items-per-page").addEventListener("change", (event) => changeItemsPerPage(event));
+    document.getElementById("items-per-page").value = itemsPerPage;
+
+}
 
 async function handleFormSubmit(event) {
     event.preventDefault()
@@ -28,8 +45,9 @@ async function handleFormSubmit(event) {
         console.log(message);
 
         if (res.status === 201) {
-            const expensesList = document.getElementById('expenses-list');
-            expensesList.appendChild(createExpenseItem(expense));
+            fetchExpensesByPageNo(currentPage, itemsPerPage)
+            ++totalCount;
+            setTotalPagesCount();
         } else if (res.status === 200) {
             const prevListItem = document.getElementById(editExpenseId);
             prevListItem.replaceWith(createExpenseItem(expense));
@@ -39,25 +57,75 @@ async function handleFormSubmit(event) {
         event.target.reset();
 
     } catch (error) {
+        console.log("Error: handleFormSubmit");
         handleErrorMessage(error);
     }
 }
 
-async function showExpenses() {
+
+
+async function fetchExpensesByPageNo(pageNo, itemsPerPage) {
     try {
-        const expensesList = document.getElementById('expenses-list');
-        expensesList.innerHTML = '';
-
-        const result = await axios.get(url + "/get", { headers: { token } })
+        const result = await axios.get(url + `/get?page=${pageNo}&limit=${itemsPerPage}`, { headers: { token } });
         const { message, data: expenses } = result.data;
-
-        expenses.forEach((expense) => {
-            expensesList.appendChild(createExpenseItem(expense));
-        });
+        
+        showExpenses(expenses);
     } catch (error) {
+        console.log("Error: fetchExpensesByPageNo")
         handleErrorMessage(error);
     }
 }
+
+async function fetchTotalCountOfExpenses() {
+    try {
+        const res = await axios.get(url + "/count", { headers: { token } });
+        const { message, data } = res.data;
+        totalCount = data.totalCount;
+        setTotalPagesCount();
+        updateStateOfPaginationButtons();
+    } catch (error) {
+        console.log("Error: fetchTotalCountOfExpenses")
+        handleErrorMessage(error);
+    }
+}
+
+async function nextButtonHandler() {
+    try {
+        if (currentPage < totalPages) {
+            currentPage++;
+            await fetchExpensesByPageNo(currentPage, itemsPerPage);
+            updateStateOfPaginationButtons();
+            return;
+        }
+    } catch (error) {
+        console.log("Error: nextButtonHandler")
+        handleErrorMessage(error);
+    }
+}
+async function prevButtonHandler() {
+    try {
+        if (currentPage > 1) {
+            currentPage--;
+            await fetchExpensesByPageNo(currentPage, itemsPerPage);
+            updateStateOfPaginationButtons();
+            return;
+        }
+    } catch (error) {
+        console.log("Error: prevButtonHandler")
+        handleErrorMessage(error);
+    }
+}
+
+function changeItemsPerPage(event) {
+    itemsPerPage = parseInt(event.target.value);
+    localStorage.setItem("itemsPerPage", itemsPerPage);
+    currentPage = 1;
+    fetchExpensesByPageNo(currentPage, itemsPerPage);
+    setTotalPagesCount();
+    updateStateOfPaginationButtons();
+
+}
+
 
 function editExpenseHandler(expense) {
     document.getElementById('amount').value = expense.amount;
@@ -72,31 +140,20 @@ async function deleteExpenseHandler(expenseId) {
     try {
         const res = await axios.delete(url + `/delete/${expenseId}`, { headers: { token } });
         console.log(res.data.message);
-        const listItem = document.getElementById(expenseId);
-        if (listItem) listItem.remove();
-
+        --totalCount;
+        setTotalPagesCount();
+        if (totalPages < currentPage && currentPage > 1) {
+            --currentPage;
+        }
+        fetchExpensesByPageNo(currentPage, itemsPerPage);
+        setTotalPagesCount();
     } catch (error) {
+        console.log("Error: deleteExpenseHandler")
         handleErrorMessage(error);
     }
 }
 
-async function showLeaderboard() {
-    try {
-        const leaderboardList = document.getElementById('leaderboard-list');
-        leaderboardList.innerHTML = "";
-
-        const result = await axios.get("http://localhost:5000/feature/leaderboard", {headers:{token}});
-        const { message, data: leaderboard } = result.data;
-
-        leaderboard.forEach(expenseSummary => {
-            const amount = expenseSummary.totalExpense ? expenseSummary.totalExpense : 0;
-            leaderboardList.appendChild(createLeaderboardItem(amount, expenseSummary.userName));
-        })
-
-    } catch (error) {
-        handleErrorMessage(error);
-    }
-}
+// Functions for handling premium features
 
 function handlePremiumDiv() {
     const premiumDiv = document.getElementById("premium-container"); 4
@@ -110,13 +167,6 @@ function handlePremiumDiv() {
         const text = document.createElement("p");
         text.textContent = "You are a Premium User!";
         premiumDiv.appendChild(text);
-
-        const leaderboardDiv = document.querySelector(".leaderboard-container");
-        leaderboardDiv.innerHTML = `
-            <h2>Leaderboard:</h2>
-            <ul id="leaderboard-list"></ul>
-            <button id="leaderboard-btn" class="leaderboard-btn" onclick="showLeaderboard()">Show Leaderboard</button>
-        `;
     }
 }
 
@@ -159,6 +209,26 @@ async function buyPremiumHandler() {
             console.log("paymentResult.error", paymentResult.error);
         }
     } catch (error) {
+        console.log("Error: buyPremiumHandler")
+        handleErrorMessage(error);
+    }
+}
+
+async function showLeaderboard() {
+    try {
+        const leaderboardList = document.getElementById('leaderboard-list');
+        leaderboardList.innerHTML = "";
+
+        const result = await axios.get("http://localhost:5000/feature/leaderboard", { headers: { token } });
+        const { message, data: leaderboard } = result.data;
+
+        leaderboard.forEach(expenseSummary => {
+            const amount = expenseSummary.totalExpense ? expenseSummary.totalExpense : 0;
+            leaderboardList.appendChild(createLeaderboardItem(amount, expenseSummary.userName));
+        })
+
+    } catch (error) {
+        console.log("Error: showLeaderboard")
         handleErrorMessage(error);
     }
 }
@@ -204,9 +274,48 @@ function createExpenseItem(expense) {
     return listItem;
 }
 
+function showExpenses(expenses) {
+    try {
+        const expensesList = document.getElementById('expenses-list');
+        expensesList.innerHTML = '';
+        if(expenses.length < 1){
+            expensesList.innerHTML = `
+                <p>No Expenses Found</p>    
+            `
+        }
+        expenses.forEach((expense) => {
+            expensesList.appendChild(createExpenseItem(expense));
+        });
+    } catch (error) {
+        handleErrorMessage(error);
+    }
+}
+
 function createLeaderboardItem(totalAmount, userName) {
     const listItem = document.createElement('li');
     listItem.id = userName;
     listItem.innerHTML = `<p>Name: ${userName}  Total Amount: ${totalAmount}</p>`;
     return listItem;
 }
+
+function enablePremiumFeatures() {
+    document.getElementById("leaderboard-container").style = "block";
+    document.getElementById("summary-container").style = "block";
+    document.getElementById("weekly-report").style = "block";
+}
+
+function setTotalPagesCount() {
+    totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
+    const currPageSpan = document.getElementById("current-page");
+    currPageSpan.textContent = `${currentPage}/${totalPages}`;
+    updateStateOfPaginationButtons();
+
+}
+
+function updateStateOfPaginationButtons() {
+    const nextBtn = document.getElementById("next-btn");
+    const prevBtn = document.getElementById("prev-btn");
+    nextBtn.disabled = currentPage >= totalPages;
+    prevBtn.disabled = currentPage <= 1;
+}
+

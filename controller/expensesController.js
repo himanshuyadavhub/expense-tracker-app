@@ -2,6 +2,7 @@ const { Expenses, Users } = require("../models/associations");
 const sequelize = require("../utils/db-connection");
 const sendResponse = require("../utils/sendResponse");
 const path = require('path');
+const ITEMS_PER_PAGE = 4;
 
 
 function renderExpensePage(req, res) {
@@ -20,11 +21,11 @@ async function addExpense(req, res) {
         const userId = req.userId;
         const { amount, description, category } = req.body;
 
-        const expense = await Expenses.create({ amount, description, category, userId }, {transaction});
+        const expense = await Expenses.create({ amount, description, category, userId }, { transaction });
 
-        const user = await Users.findByPk(userId, {transaction});
-        user.totalExpense= Number(user.totalExpense) + Number(amount);
-        await user.save({transaction});
+        const user = await Users.findByPk(userId, { transaction });
+        user.totalExpense = Number(user.totalExpense) + Number(amount);
+        await user.save({ transaction });
 
         await transaction.commit();
         return sendResponse.created(res, "Expenses added!", expense);
@@ -35,20 +36,36 @@ async function addExpense(req, res) {
     }
 }
 
-async function getAllExpenses(req, res) {
+async function getPerPageExpenses(req, res) {
     try {
         const userId = req.userId;
-        const expenses = await Expenses.findAll({ where: { userId } });
+        const page = req.query.page || 1;
+        const limit = parseInt(req.query.limit) || 5;
+        const offset = (page - 1) * limit;
+        const expenses = await Expenses.findAll({ offset, limit, order:[["createdAt", "DESC"]] }, { where: { userId }});
         if (expenses.length > 0) {
             return sendResponse.ok(res, "Fetched all expenses", expenses);
         } else {
             return sendResponse.ok(res, "No expenses found!", [])
         }
     } catch (error) {
-        console.log("Error: getAllExpenses", error.message);
+        console.log("Error: getPerPageExpenses", error.message);
         return sendResponse.serverError(res, "Getting expense failed!")
     }
 }
+
+async function getTotalCountOfExpenses(req,res){
+    const userId = req.userId;
+    try {
+        const totalCount = await Expenses.count({where:{userId}});
+        sendResponse.ok(res, "Fetched total count of expenses!", {totalCount, ITEMS_PER_PAGE});
+    } catch (error) {
+        console.log("Error: getTotalCountOfExpenses", error.message);
+        return sendResponse.serverError(res, "Fetching total count failed!");
+    }
+}
+
+
 
 async function updateExpense(req, res) {
     const transaction = await sequelize.transaction();
@@ -58,20 +75,20 @@ async function updateExpense(req, res) {
         const userId = req.userId;
         const { amount, description, category } = req.body;
 
-        const expense = await Expenses.findOne({ where: { id, userId } }, {transaction});
+        const expense = await Expenses.findOne({ where: { id, userId } }, { transaction });
 
         if (!expense) {
             await transaction.rollback();
             return sendResponse.notFound(res, `Expense with id ${id} not found!`);
         }
-        const user = await Users.findByPk(userId, {transaction});
-        user.totalExpense= Number(user.totalExpense) + Number(amount) - Number(expense.amount);
-        await user.save({transaction});
+        const user = await Users.findByPk(userId, { transaction });
+        user.totalExpense = Number(user.totalExpense) + Number(amount) - Number(expense.amount);
+        await user.save({ transaction });
 
         expense.amount = amount;
         expense.description = description;
         expense.category = category;
-        await expense.save({transaction});
+        await expense.save({ transaction });
 
         await transaction.commit();
 
@@ -90,18 +107,18 @@ async function deleteExpense(req, res) {
     try {
         const userId = req.userId;
         const id = req.params.id;
-        const expense = await Expenses.findOne({where:{id,userId}}, {transaction});
-        if(!expense){
+        const expense = await Expenses.findOne({ where: { id, userId } }, { transaction });
+        if (!expense) {
             await transaction.rollback();
             return sendResponse.notFound(res, `Expense with id ${id} not found!`);
         }
 
-        const user = await Users.findByPk(userId, {transaction});
-        user.totalExpense= Number(user.totalExpense) - Number(expense.amount);
-        await user.save({transaction});
+        const user = await Users.findByPk(userId, { transaction });
+        user.totalExpense = Number(user.totalExpense) - Number(expense.amount);
+        await user.save({ transaction });
 
-        await expense.destroy({ where: { id, userId } }, {transaction});
-        
+        await expense.destroy({ where: { id, userId } }, { transaction });
+
         await transaction.commit();
         return sendResponse.ok(res, `Expense with id ${id} deleted successfully!`);
     } catch (error) {
@@ -116,7 +133,8 @@ async function deleteExpense(req, res) {
 module.exports = {
     renderExpensePage,
     addExpense,
-    getAllExpenses,
+    getPerPageExpenses,
+    getTotalCountOfExpenses,
     updateExpense,
     deleteExpense,
 }

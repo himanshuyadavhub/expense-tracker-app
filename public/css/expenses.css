@@ -162,3 +162,61 @@ body {
     max-width: 600px;
     margin: 20px auto;
 }
+
+/* Pagination container */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    margin-top: 20px;
+    padding: 10px;
+    flex-wrap: wrap;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 0 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Buttons */
+#prev-btn, #next-btn {
+    padding: 6px 12px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+#prev-btn:disabled, #next-btn:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+}
+
+#prev-btn:hover:not(:disabled), #next-btn:hover:not(:disabled) {
+    background-color: #0056b3;
+}
+
+/* Select dropdown */
+#items-per-page {
+    padding: 6px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+.pagination label {
+    font-size: 14px;
+    color: #333;
+}
+
+
+/* Current page indicator */
+#current-page {
+    font-weight: bold;
+    font-size: 15px;
+    min-width: 30px;
+    text-align: center;
+    color: #333;
+}

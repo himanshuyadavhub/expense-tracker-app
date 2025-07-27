@@ -3,13 +3,13 @@ const Expenses = require("./Expenses");
 const Payments = require("./Payments");
 const ForgotPasswordRequests = require("./ForgotPasswordRequests");
 
-Users.hasMany(Expenses);
+Users.hasMany(Expenses, {onDelete:"CASCADE"});
 Expenses.belongsTo(Users);
 
-Users.hasMany(Payments);
+Users.hasMany(Payments, {onDelete:"CASCADE"});
 Expenses.belongsTo(Users);
 
-Users.hasMany(ForgotPasswordRequests);
+Users.hasMany(ForgotPasswordRequests, {onDelete:"CASCADE"});
 ForgotPasswordRequests.belongsTo(Users);
 
 module.exports = {

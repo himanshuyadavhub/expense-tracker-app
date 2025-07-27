@@ -35,14 +35,30 @@
     <div class="expenses-container">
         <h2>Expenses: </h2>
         <ul id="expenses-list"></ul>
+        <div class="pagination" id="pagination">
+            <button type="button" id="prev-btn" >Prev</button>
+            <label for="items-per-page">Items per page</label>
+            <select name="items-per-page" id="items-per-page">
+                <option value="2">2</option>
+                <option value="5">5</option>
+                <option value="10">10</option>
+                <option value="15">15</option>
+            </select>
+            <span id="current-page"></span>
+            <button type="button" id="next-btn">Next</button>
+        </div>
     </div>
     <div class="premium-features-container">
-        <div class="summary-container" id="summary-container">
+        <div class="summary-container" id="summary-container" style="display: none;">
             <h3>Total Expense:</h3>
             <h3>Total Salary:</h3>
         </div>
-        <div class="leaderboard-container" id="leaderboard-container"></div>
-        <div class="weekly-report" id="weekly-report">
+        <div class="leaderboard-container" id="leaderboard-container" style="display: none;">
+            <h2>Leaderboard:</h2>
+            <ul id="leaderboard-list"></ul>
+            <button id="leaderboard-btn" class="leaderboard-btn" onclick="showLeaderboard()">Show Leaderboard</button>
+        </div>
+        <div class="weekly-report" id="weekly-report" style="display: none;">
             <h3>Weekly Report will be here</h3>
         </div>
     </div>
