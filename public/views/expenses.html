@@ -31,12 +31,15 @@
             <button type="submit" id="submit-btn">Add Expense</button>
         </form>
     </div>
+
+<!-- Div for buy premium button -->
     <div class="premium-container" id="premium-container"></div>
+
     <div class="expenses-container">
         <h2>Expenses: </h2>
         <ul id="expenses-list"></ul>
         <div class="pagination" id="pagination">
-            <button type="button" id="prev-btn" >Prev</button>
+            <button type="button" id="prev-btn">Prev</button>
             <label for="items-per-page">Items per page</label>
             <select name="items-per-page" id="items-per-page">
                 <option value="2">2</option>
@@ -48,19 +51,32 @@
             <button type="button" id="next-btn">Next</button>
         </div>
     </div>
+
+
     <div class="premium-features-container">
-        <div class="summary-container" id="summary-container" style="display: none;">
-            <h3>Total Expense:</h3>
-            <h3>Total Salary:</h3>
-        </div>
         <div class="leaderboard-container" id="leaderboard-container" style="display: none;">
             <h2>Leaderboard:</h2>
             <ul id="leaderboard-list"></ul>
             <button id="leaderboard-btn" class="leaderboard-btn" onclick="showLeaderboard()">Show Leaderboard</button>
         </div>
-        <div class="weekly-report" id="weekly-report" style="display: none;">
-            <h3>Weekly Report will be here</h3>
+
+        <div class="report-container" id="report-container" style="display: none;">
+            <h3>Generate your expenses report</h3>
+            <label for="duration">Choose duration:</label>
+            <select name="duration" id="duration">
+                <!-- <option value="today">Today</option> -->
+                <option value="weekly">Weekly</option>
+                <option value="monthly">Monthly</option>
+            </select>
+            <button id="report-generate-btn">Generate</button>
+
+            <div class="report-expenses" id="report-expenses">
+                <table class="report-table" id="report-table">
+                </table>
+                <div class="donwload-btn-container" id="download-btn-container"></div>
+            </div>
         </div>
+
     </div>
 
 </body>

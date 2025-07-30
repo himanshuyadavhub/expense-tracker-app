@@ -1,6 +1,5 @@
 const sendResponse = require("../utils/sendResponse");
-const { Users, Expenses, Payments, ForgotPasswordRequests } = require('../models');
-const sequelize = require("../utils/db-connection");
+const {sequelize,  Users, Expenses, Payments, ForgotPasswordRequests } = require('../models');
 const config = require("../config");
 
 const uuid = require('uuid');
@@ -9,7 +8,6 @@ const jwt = require('jsonwebtoken');
 const path = require('path');
 
 const emailServices = require("../services/emailServices");
-const User = require("../models/Users");
 
 function renderSignupPage(req, res) {
     try {

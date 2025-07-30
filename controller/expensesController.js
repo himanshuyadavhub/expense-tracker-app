@@ -1,5 +1,4 @@
-const { Users, Expenses, Payments, ForgotPasswordRequests } = require('../models');
-const sequelize = require("../utils/db-connection");
+const { sequelize, Users, Expenses, Payments, ForgotPasswordRequests, DailyTotalExpenses } = require('../models');
 const sendResponse = require("../utils/sendResponse");
 const path = require('path');
 const ITEMS_PER_PAGE = 4;
@@ -17,18 +16,27 @@ function renderExpensePage(req, res) {
 
 async function addExpense(req, res) {
     const transaction = await sequelize.transaction();
+    const todayDate = new Date().toISOString().split('T')[0];
     try {
-        const userId = req.userId;
+        const UserId = req.userId;
         const { amount, description, category } = req.body;
 
-        const expense = await Expenses.create({ amount, description, category, userId }, { transaction });
+        const expense = await Expenses.create({ amount, description, category, UserId }, { transaction });
 
-        const user = await Users.findByPk(userId, { transaction });
+        const user = await Users.findByPk(UserId, { transaction });
         user.totalExpense = Number(user.totalExpense) + Number(amount);
         await user.save({ transaction });
 
+        const dailyTotalExpense = await DailyTotalExpenses.findOne({ where: { UserId, date: todayDate } }, { transaction });
+        if (dailyTotalExpense) {
+            dailyTotalExpense.totalAmount = Number(dailyTotalExpense.totalAmount) + Number(amount);
+            await dailyTotalExpense.save({ transaction });
+        } else {
+            await DailyTotalExpenses.create({ totalAmount: amount, UserId, date: todayDate }, { transaction });
+        }
+
         await transaction.commit();
-        return sendResponse.created(res, "Expenses added!", expense);
+        return sendResponse.created(res, "Expenses added!");
     } catch (error) {
         await transaction.rollback();
         console.log("Error: addExpense", error.message);
@@ -38,11 +46,11 @@ async function addExpense(req, res) {
 
 async function getPerPageExpenses(req, res) {
     try {
-        const userId = req.userId;
+        const UserId = req.userId;
         const page = req.query.page || 1;
         const limit = parseInt(req.query.limit) || 5;
         const offset = (page - 1) * limit;
-        const expenses = await Expenses.findAll({ offset, limit, order:[["createdAt", "DESC"]] }, { where: { userId }});
+        const expenses = await Expenses.findAll({ offset, limit, order: [["createdAt", "DESC"]], where: { UserId }, attributes: { exclude: ["UserId"] } });
         if (expenses.length > 0) {
             return sendResponse.ok(res, "Fetched all expenses", expenses);
         } else {
@@ -54,11 +62,11 @@ async function getPerPageExpenses(req, res) {
     }
 }
 
-async function getTotalCountOfExpenses(req,res){
+async function getTotalCountOfExpenses(req, res) {
     const userId = req.userId;
     try {
-        const totalCount = await Expenses.count({where:{userId}});
-        sendResponse.ok(res, "Fetched total count of expenses!", {totalCount, ITEMS_PER_PAGE});
+        const totalCount = await Expenses.count({ where: { UserId: userId } });
+        sendResponse.ok(res, "Fetched total count of expenses!", { totalCount, ITEMS_PER_PAGE });
     } catch (error) {
         console.log("Error: getTotalCountOfExpenses", error.message);
         return sendResponse.serverError(res, "Fetching total count failed!");
@@ -75,7 +83,7 @@ async function updateExpense(req, res) {
         const userId = req.userId;
         const { amount, description, category } = req.body;
 
-        const expense = await Expenses.findOne({ where: { id, userId } }, { transaction });
+        const expense = await Expenses.findOne({ where: { id, UserId: userId }, attributes: { exclude: ["UserId"] }}, { transaction });
 
         if (!expense) {
             await transaction.rollback();
@@ -84,6 +92,11 @@ async function updateExpense(req, res) {
         const user = await Users.findByPk(userId, { transaction });
         user.totalExpense = Number(user.totalExpense) + Number(amount) - Number(expense.amount);
         await user.save({ transaction });
+
+        const expenseDate = expense.createdAt.toISOString().split('T')[0];
+        const dailyTotalExpense = await DailyTotalExpenses.findOne({ where: { UserId: userId, date: expenseDate } }, { transaction });
+        dailyTotalExpense.totalAmount = Number(dailyTotalExpense.totalAmount) + Number(amount) - Number(expense.amount);
+        await dailyTotalExpense.save({ transaction });
 
         expense.amount = amount;
         expense.description = description;
@@ -107,17 +120,21 @@ async function deleteExpense(req, res) {
     try {
         const userId = req.userId;
         const id = req.params.id;
-        const expense = await Expenses.findOne({ where: { id, userId } }, { transaction });
+        const expense = await Expenses.findOne({ where: { id, UserId: userId } }, { transaction });
         if (!expense) {
             await transaction.rollback();
             return sendResponse.notFound(res, `Expense with id ${id} not found!`);
         }
+        const expenseDate = expense.createdAt.toISOString().split('T')[0];
+        const dailyTotalExpense = await DailyTotalExpenses.findOne({ where: { UserId: userId, date: expenseDate } }, { transaction });
+        dailyTotalExpense.totalAmount = Number(dailyTotalExpense.totalAmount) - Number(expense.amount);
+        await dailyTotalExpense.save({transaction});
 
         const user = await Users.findByPk(userId, { transaction });
         user.totalExpense = Number(user.totalExpense) - Number(expense.amount);
         await user.save({ transaction });
 
-        await expense.destroy({ where: { id, userId } }, { transaction });
+        await expense.destroy({ where: { id, UserId: userId } }, { transaction });
 
         await transaction.commit();
         return sendResponse.ok(res, `Expense with id ${id} deleted successfully!`);

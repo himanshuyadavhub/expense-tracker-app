@@ -35,6 +35,7 @@ function defineUserSchema(sequelize, DataTypes) {
         Users.hasMany(models.Expenses, { onDelete: "CASCADE" });
         Users.hasMany(models.Payments, { onDelete: "CASCADE" });
         Users.hasMany(models.ForgotPasswordRequests, { onDelete: "CASCADE" });
+        Users.hasMany(models.DailyTotalExpenses, { onDelete: "CASCADE" });
     }
 
     return Users;

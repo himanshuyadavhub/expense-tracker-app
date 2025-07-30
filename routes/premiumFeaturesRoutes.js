@@ -5,6 +5,7 @@ const premiumFeatures = require("../controller/premiumFeaturesController");
 
 
 router.get("/leaderboard", auth.authenticateUser, premiumFeatures.getLeaderboard);
+router.get("/report", auth.authenticateUser, premiumFeatures.getReportOfExpenses);
 
 module.exports = router;
 

@@ -1,4 +1,6 @@
+
 const url = "http://localhost:5000/expense"
+const premiumUrl = "http://localhost:5000/feature"
 let editExpenseId = null;
 const token = localStorage.getItem("token");
 const isPremiumUser = localStorage.getItem("isPremiumUser");
@@ -24,6 +26,8 @@ function applyEventListeners() {
     document.getElementById("prev-btn").addEventListener("click", prevButtonHandler);
     document.getElementById("items-per-page").addEventListener("change", (event) => changeItemsPerPage(event));
     document.getElementById("items-per-page").value = itemsPerPage;
+    document.getElementById("report-generate-btn").addEventListener('click', reportGenerateHandler);
+
 
 }
 
@@ -68,7 +72,7 @@ async function fetchExpensesByPageNo(pageNo, itemsPerPage) {
     try {
         const result = await axios.get(url + `/get?page=${pageNo}&limit=${itemsPerPage}`, { headers: { token } });
         const { message, data: expenses } = result.data;
-        
+
         showExpenses(expenses);
     } catch (error) {
         console.log("Error: fetchExpensesByPageNo")
@@ -153,10 +157,12 @@ async function deleteExpenseHandler(expenseId) {
     }
 }
 
+
+
 // Functions for handling premium features
 
 function handlePremiumDiv() {
-    const premiumDiv = document.getElementById("premium-container"); 4
+    const premiumDiv = document.getElementById("premium-container");
     premiumDiv.innerHTML = "";
     if (isPremiumUser === "false") {
         const buyPremiumBtn = createButton("Buy Premium", "buyPremium-btn");
@@ -233,6 +239,28 @@ async function showLeaderboard() {
     }
 }
 
+async function reportGenerateHandler() {
+    try {
+        const duration = document.getElementById("duration").value;
+        const res = await axios.get(premiumUrl + `/report?duration=${duration}`, { headers: { token } });
+        const { message, data: expenses } = res.data;
+        console.log(message)
+        populateReportTable(expenses, duration);
+
+        const downloadDiv = document.getElementById("download-btn-container")
+        downloadDiv.innerHTML = "";
+        const downloadBtn = createButton("Download", "download-btn");
+        downloadBtn.addEventListener("click", () => downloadCsvFile(generateCSVContent(expenses, duration), `${duration}-report.csv`))
+        downloadDiv.appendChild(downloadBtn);
+
+    } catch (error) {
+        handleErrorMessage(error);
+    }
+}
+
+
+
+
 // HELPER FUNCTIONS:
 
 function handleErrorMessage(error) {
@@ -278,7 +306,7 @@ function showExpenses(expenses) {
     try {
         const expensesList = document.getElementById('expenses-list');
         expensesList.innerHTML = '';
-        if(expenses.length < 1){
+        if (expenses.length < 1) {
             expensesList.innerHTML = `
                 <p>No Expenses Found</p>    
             `
@@ -300,8 +328,7 @@ function createLeaderboardItem(totalAmount, userName) {
 
 function enablePremiumFeatures() {
     document.getElementById("leaderboard-container").style = "block";
-    document.getElementById("summary-container").style = "block";
-    document.getElementById("weekly-report").style = "block";
+    document.getElementById("report-container").style = "block";
 }
 
 function setTotalPagesCount() {
@@ -315,7 +342,89 @@ function setTotalPagesCount() {
 function updateStateOfPaginationButtons() {
     const nextBtn = document.getElementById("next-btn");
     const prevBtn = document.getElementById("prev-btn");
+    const currPageSpan = document.getElementById("current-page");
+    currPageSpan.textContent = `${currentPage}/${totalPages}`;
     nextBtn.disabled = currentPage >= totalPages;
     prevBtn.disabled = currentPage <= 1;
 }
 
+function createReportRows(expense, duration) {
+
+    const tableRow = document.createElement('tr');
+
+    if (duration === "weekly") {
+        const createdAt = new Date(expense.createdAt);
+        const formattedDate = `${createdAt.getDate()}/${createdAt.getMonth()+1}/${createdAt.getFullYear()}`
+        tableRow.innerHTML = `
+            <td>${formattedDate}</td>
+            <td>${expense.description}</td>
+            <td>${expense.category}</td>
+            <td>${expense.amount}</td>
+        `
+    }
+    if (duration === "monthly") {
+        tableRow.innerHTML = `
+            <td>${expense.date}</td>
+            <td>${expense.totalAmount}</td>
+        `
+    }
+    return tableRow;
+}
+
+function populateReportTable(expenses, duration) {
+
+    const reportTable = document.getElementById("report-table");
+    if (!expenses.length) {
+        reportTable.innerHTML += '<tr><td colspan="4">No data available</td></tr>';
+        return;
+    }
+    if (duration === "weekly") {
+        reportTable.innerHTML = `
+            <th class="table-heading">Date</th>
+            <th class="table-heading">Description</th>
+            <th class="table-heading">Category</th>
+            <th class="table-heading">Amount</th>
+        `
+    }
+    if (duration === "monthly") {
+        reportTable.innerHTML = `
+            <th class="table-heading">Date</th>
+            <th class="table-heading">Amount</th>
+        `
+    }
+    expenses.forEach(expense => {
+        reportTable.appendChild(createReportRows(expense, duration));
+    })
+}
+
+function generateCSVContent(expenses, duration) {
+    let csvContent = "";
+
+    if (duration === "weekly") {
+        csvContent += "Date,Description,Category,Amount\n";
+        expenses.forEach(exp => {
+            const createdAt = new Date(exp.createdAt);
+            const formattedDate = `${createdAt.getDate()}/${createdAt.getMonth()+1}/${createdAt.getFullYear()}`
+            csvContent += `${formattedDate},${exp.description},${exp.category},${exp.amount}\n`;
+        });
+    } else if (duration === "monthly") {
+        csvContent += "Date,Amount\n";
+        expenses.forEach(exp => {
+            csvContent += `${exp.date},${exp.totalAmount}\n`;
+        });
+    }
+
+    return csvContent;
+}
+
+function downloadCsvFile(csvContent, fileName) {
+    const blob = new Blob([csvContent], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = fileName;
+    a.click();
+
+    URL.revokeObjectURL(url);
+}
