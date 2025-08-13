@@ -57,7 +57,7 @@
         <div class="leaderboard-container" id="leaderboard-container" style="display: none;">
             <h2>Leaderboard:</h2>
             <ul id="leaderboard-list"></ul>
-            <button id="leaderboard-btn" class="leaderboard-btn" onclick="showLeaderboard()">Show Leaderboard</button>
+            <button id="leaderboard-btn" class="leaderboard-btn" onclick="fetchLeaderboardData()">Show Leaderboard</button>
         </div>
 
         <div class="report-container" id="report-container" style="display: none;">
@@ -74,6 +74,10 @@
                 <table class="report-table" id="report-table">
                 </table>
                 <div class="donwload-btn-container" id="download-btn-container"></div>
+            </div>
+            <div class="previous-downloads" id="previous-downloads">
+                <h3>Previous Downloads:</h3>
+                <ul id="downloads-list"></ul>
             </div>
         </div>
 

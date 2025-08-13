@@ -27,7 +27,35 @@ function setDateInterval(duration) {
 
 }
 
+function jsonExpensesToCsv(data) {
+    if (!data.length) return "";
+
+    const headings = Object.keys(data[0]);
+    let csvRows = [];
+    csvRows.push(headings.join(","));
+
+    for (let ele of data) {
+        let values = []
+        for (let key of headings) {
+            if (key === "createdAt") {
+                let formattedDate = formatDate(ele[key]);
+                values.push(formattedDate);
+            } else {
+                values.push(ele[key]);
+            }
+        }
+        csvRows.push(values.join(","));
+    }
+    return csvRows.join("\n")
+}
+
+function formatDate(defaultDate) {
+    const date = new Date(defaultDate);
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
+}
 
 module.exports = {
     setDateInterval,
+    jsonExpensesToCsv,
+    formatDate
 }

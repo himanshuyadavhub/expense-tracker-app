@@ -18,18 +18,9 @@ document.addEventListener('DOMContentLoaded', () => {
     applyEventListeners();
     if (isPremiumUser === "true") {
         enablePremiumFeatures();
+        fetchPreviousDownloads();
     }
 });
-
-function applyEventListeners() {
-    document.getElementById("next-btn").addEventListener("click", nextButtonHandler);
-    document.getElementById("prev-btn").addEventListener("click", prevButtonHandler);
-    document.getElementById("items-per-page").addEventListener("change", (event) => changeItemsPerPage(event));
-    document.getElementById("items-per-page").value = itemsPerPage;
-    document.getElementById("report-generate-btn").addEventListener('click', reportGenerateHandler);
-
-
-}
 
 async function handleFormSubmit(event) {
     event.preventDefault()
@@ -67,6 +58,7 @@ async function handleFormSubmit(event) {
 }
 
 
+// FETCH DATA FROM BACKEND
 
 async function fetchExpensesByPageNo(pageNo, itemsPerPage) {
     try {
@@ -93,32 +85,6 @@ async function fetchTotalCountOfExpenses() {
     }
 }
 
-async function nextButtonHandler() {
-    try {
-        if (currentPage < totalPages) {
-            currentPage++;
-            await fetchExpensesByPageNo(currentPage, itemsPerPage);
-            updateStateOfPaginationButtons();
-            return;
-        }
-    } catch (error) {
-        console.log("Error: nextButtonHandler")
-        handleErrorMessage(error);
-    }
-}
-async function prevButtonHandler() {
-    try {
-        if (currentPage > 1) {
-            currentPage--;
-            await fetchExpensesByPageNo(currentPage, itemsPerPage);
-            updateStateOfPaginationButtons();
-            return;
-        }
-    } catch (error) {
-        console.log("Error: prevButtonHandler")
-        handleErrorMessage(error);
-    }
-}
 
 function changeItemsPerPage(event) {
     itemsPerPage = parseInt(event.target.value);
@@ -131,35 +97,12 @@ function changeItemsPerPage(event) {
 }
 
 
-function editExpenseHandler(expense) {
-    document.getElementById('amount').value = expense.amount;
-    document.getElementById('description').value = expense.description;
-    document.getElementById('category').value = expense.category;
-
-    editExpenseId = expense.id;
-    document.getElementById('submit-btn').textContent = "Update Expense";
-}
-
-async function deleteExpenseHandler(expenseId) {
-    try {
-        const res = await axios.delete(url + `/delete/${expenseId}`, { headers: { token } });
-        console.log(res.data.message);
-        --totalCount;
-        setTotalPagesCount();
-        if (totalPages < currentPage && currentPage > 1) {
-            --currentPage;
-        }
-        fetchExpensesByPageNo(currentPage, itemsPerPage);
-        setTotalPagesCount();
-    } catch (error) {
-        console.log("Error: deleteExpenseHandler")
-        handleErrorMessage(error);
-    }
-}
-
-
 
 // Functions for handling premium features
+function enablePremiumFeatures() {
+    document.getElementById("leaderboard-container").style = "block";
+    document.getElementById("report-container").style = "block";
+}
 
 function handlePremiumDiv() {
     const premiumDiv = document.getElementById("premium-container");
@@ -220,21 +163,12 @@ async function buyPremiumHandler() {
     }
 }
 
-async function showLeaderboard() {
+async function fetchLeaderboardData(){
     try {
-        const leaderboardList = document.getElementById('leaderboard-list');
-        leaderboardList.innerHTML = "";
-
         const result = await axios.get("http://localhost:5000/feature/leaderboard", { headers: { token } });
-        const { message, data: leaderboard } = result.data;
-
-        leaderboard.forEach(expenseSummary => {
-            const amount = expenseSummary.totalExpense ? expenseSummary.totalExpense : 0;
-            leaderboardList.appendChild(createLeaderboardItem(amount, expenseSummary.userName));
-        })
-
+        const { message, data: leaderboardData } = result.data;
+        showLeaderboard(leaderboardData)
     } catch (error) {
-        console.log("Error: showLeaderboard")
         handleErrorMessage(error);
     }
 }
@@ -243,16 +177,29 @@ async function reportGenerateHandler() {
     try {
         const duration = document.getElementById("duration").value;
         const res = await axios.get(premiumUrl + `/report?duration=${duration}`, { headers: { token } });
-        const { message, data: expenses } = res.data;
-        console.log(message)
+        const { message, data } = res.data;
+        console.log(message);
+        const expenses = data[0];
+        const reportFileUrl = data[1];
         populateReportTable(expenses, duration);
+        if (expenses.length) {
+            const downloadDiv = document.getElementById("download-btn-container")
+            downloadDiv.innerHTML = "";
+            const downloadBtn = createButton("Download", "download-btn");
+            downloadBtn.addEventListener("click", () => downloadButtonHandler(reportFileUrl));
+            downloadDiv.appendChild(downloadBtn);
+        }
+    } catch (error) {
+        handleErrorMessage(error);
+    }
+}
 
-        const downloadDiv = document.getElementById("download-btn-container")
-        downloadDiv.innerHTML = "";
-        const downloadBtn = createButton("Download", "download-btn");
-        downloadBtn.addEventListener("click", () => downloadCsvFile(generateCSVContent(expenses, duration), `${duration}-report.csv`))
-        downloadDiv.appendChild(downloadBtn);
-
+async function fetchPreviousDownloads() {
+    try {
+        const result = await axios.get(premiumUrl + "/downloads", { headers: { token } });
+        const { message, data: downloads } = result.data;
+        console.log(message);
+        showDownloads(downloads);
     } catch (error) {
         handleErrorMessage(error);
     }
@@ -260,25 +207,7 @@ async function reportGenerateHandler() {
 
 
 
-
-// HELPER FUNCTIONS:
-
-function handleErrorMessage(error) {
-    if (error.response) {
-        alert(`${error.response.status} - ${error.response.data?.message || error.response.statusText}`);
-    } else if (error.request) {
-        console.log(`No response from server. Please check your network or server status.`);
-    } else {
-        console.log(`Error: ${error.message}`);
-    }
-}
-
-function createButton(text, className) {
-    const btn = document.createElement('button');
-    btn.className = className;
-    btn.textContent = text;
-    return btn;
-}
+// RENDERING DATA AND UI UPDATE FUNCTIONS:
 
 function createExpenseItem(expense) {
     const listItem = document.createElement('li');
@@ -319,24 +248,11 @@ function showExpenses(expenses) {
     }
 }
 
-function createLeaderboardItem(totalAmount, userName) {
-    const listItem = document.createElement('li');
-    listItem.id = userName;
-    listItem.innerHTML = `<p>Name: ${userName}  Total Amount: ${totalAmount}</p>`;
-    return listItem;
-}
-
-function enablePremiumFeatures() {
-    document.getElementById("leaderboard-container").style = "block";
-    document.getElementById("report-container").style = "block";
-}
-
 function setTotalPagesCount() {
     totalPages = Math.ceil(totalCount / itemsPerPage) || 1;
     const currPageSpan = document.getElementById("current-page");
     currPageSpan.textContent = `${currentPage}/${totalPages}`;
     updateStateOfPaginationButtons();
-
 }
 
 function updateStateOfPaginationButtons() {
@@ -348,13 +264,32 @@ function updateStateOfPaginationButtons() {
     prevBtn.disabled = currentPage <= 1;
 }
 
+function createLeaderboardItem(totalAmount, userName) {
+    const listItem = document.createElement('li');
+    listItem.id = userName;
+    listItem.innerHTML = `<p>Name: ${userName}  Total Amount: ${totalAmount}</p>`;
+    return listItem;
+}
+
+async function showLeaderboard(leaderboardData) {
+    try {
+        const leaderboardList = document.getElementById('leaderboard-list');
+        leaderboardList.innerHTML = "";
+        leaderboardData.forEach(expenseSummary => {
+            const amount = expenseSummary.totalExpense ? expenseSummary.totalExpense : 0;
+            leaderboardList.appendChild(createLeaderboardItem(amount, expenseSummary.userName));
+        })
+
+    } catch (error) {
+        handleErrorMessage(error);
+    }
+}
+
 function createReportRows(expense, duration) {
-
     const tableRow = document.createElement('tr');
-
     if (duration === "weekly") {
         const createdAt = new Date(expense.createdAt);
-        const formattedDate = `${createdAt.getDate()}/${createdAt.getMonth()+1}/${createdAt.getFullYear()}`
+        const formattedDate = `${createdAt.getDate()}/${createdAt.getMonth() + 1}/${createdAt.getFullYear()}`
         tableRow.innerHTML = `
             <td>${formattedDate}</td>
             <td>${expense.description}</td>
@@ -374,6 +309,7 @@ function createReportRows(expense, duration) {
 function populateReportTable(expenses, duration) {
 
     const reportTable = document.getElementById("report-table");
+    reportTable.innerHTML = "";
     if (!expenses.length) {
         reportTable.innerHTML += '<tr><td colspan="4">No data available</td></tr>';
         return;
@@ -397,34 +333,158 @@ function populateReportTable(expenses, duration) {
     })
 }
 
-function generateCSVContent(expenses, duration) {
-    let csvContent = "";
+function createDownloadItem(download) {
+    const {url:reportFileUrl, createdAt} = download;
+    const listItem = document.createElement('li');
+    
+    const formattedDate = formatDate(createdAt);
+    const formattedTime = formatTime(createdAt);
 
-    if (duration === "weekly") {
-        csvContent += "Date,Description,Category,Amount\n";
-        expenses.forEach(exp => {
-            const createdAt = new Date(exp.createdAt);
-            const formattedDate = `${createdAt.getDate()}/${createdAt.getMonth()+1}/${createdAt.getFullYear()}`
-            csvContent += `${formattedDate},${exp.description},${exp.category},${exp.amount}\n`;
+    listItem.innerHTML = `
+        <p>
+        Generated At: ${formattedDate} -- ${formattedTime}
+        </p>
+    `;
+
+    const downloadBtn = createButton("Download", "download-btn");
+    downloadBtn.addEventListener('click', () => downloadButtonHandler(reportFileUrl));
+    listItem.appendChild(downloadBtn);
+
+    return listItem;
+}
+
+function showDownloads(downlaods) {
+    try {
+        const downloadList = document.getElementById('downloads-list');
+        downloadList.innerHTML = '';
+        if (downlaods.length < 1) {
+            downloadList.innerHTML = `
+                <p>No Previous Downloads</p>    
+            `
+        }
+        downlaods.forEach((download) => {
+            downloadList.appendChild(createDownloadItem(download));
         });
-    } else if (duration === "monthly") {
-        csvContent += "Date,Amount\n";
-        expenses.forEach(exp => {
-            csvContent += `${exp.date},${exp.totalAmount}\n`;
-        });
+    } catch (error) {
+        handleErrorMessage(error);
     }
-
-    return csvContent;
 }
 
-function downloadCsvFile(csvContent, fileName) {
-    const blob = new Blob([csvContent], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
+// EVENT BINDING FUNCTIONS:
 
+function applyEventListeners() {
+    document.getElementById("next-btn").addEventListener("click", nextButtonHandler);
+    document.getElementById("prev-btn").addEventListener("click", prevButtonHandler);
+    document.getElementById("items-per-page").addEventListener("change", (event) => changeItemsPerPage(event));
+    document.getElementById("items-per-page").value = itemsPerPage;
+    document.getElementById("report-generate-btn").addEventListener('click', reportGenerateHandler);
+}
+
+
+
+
+// BUTTON HANDLER FUNCTIONS:
+
+function editExpenseHandler(expense) {
+    document.getElementById('amount').value = expense.amount;
+    document.getElementById('description').value = expense.description;
+    document.getElementById('category').value = expense.category;
+
+    editExpenseId = expense.id;
+    document.getElementById('submit-btn').textContent = "Update Expense";
+}
+
+async function deleteExpenseHandler(expenseId) {
+    try {
+        const res = await axios.delete(url + `/delete/${expenseId}`, { headers: { token } });
+        console.log(res.data.message);
+        --totalCount;
+        setTotalPagesCount();
+        if (totalPages < currentPage && currentPage > 1) {
+            --currentPage;
+        }
+        fetchExpensesByPageNo(currentPage, itemsPerPage);
+        setTotalPagesCount();
+    } catch (error) {
+        console.log("Error: deleteExpenseHandler")
+        handleErrorMessage(error);
+    }
+}
+
+async function nextButtonHandler() {
+    try {
+        if (currentPage < totalPages) {
+            currentPage++;
+            await fetchExpensesByPageNo(currentPage, itemsPerPage);
+            updateStateOfPaginationButtons();
+            return;
+        }
+    } catch (error) {
+        console.log("Error: nextButtonHandler")
+        handleErrorMessage(error);
+    }
+}
+
+async function prevButtonHandler() {
+    try {
+        if (currentPage > 1) {
+            currentPage--;
+            await fetchExpensesByPageNo(currentPage, itemsPerPage);
+            updateStateOfPaginationButtons();
+            return;
+        }
+    } catch (error) {
+        console.log("Error: prevButtonHandler")
+        handleErrorMessage(error);
+    }
+}
+
+function downloadButtonHandler(fileUrl) {
     const a = document.createElement("a");
-    a.href = url;
-    a.download = fileName;
+    a.href = fileUrl;
+    a.setAttribute("download", "report.csv");
+    document.body.appendChild(a);
     a.click();
-
-    URL.revokeObjectURL(url);
+    document.body.removeChild(a);
 }
+
+
+// HELPER FUNCTIONS:
+
+function handleErrorMessage(error) {
+    if (error.response) {
+        alert(`${error.response.status} - ${error.response.data?.message || error.response.statusText}`);
+    } else if (error.request) {
+        console.log(`No response from server. Please check your network or server status.`);
+    } else {
+        console.log(`Error: ${error.message}`);
+    }
+}
+
+function createButton(text, className) {
+    const btn = document.createElement('button');
+    btn.className = className;
+    btn.textContent = text;
+    return btn;
+}
+
+
+function formatDate(defaultDate){
+    const date = new Date(defaultDate);
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
+}
+
+function formatTime(defaultDate){
+    const date = new Date(defaultDate);
+    const hrs = date.getHours();
+    const mins = date.getMinutes();
+
+    if(hrs < 10){
+        return `0${hrs}:${mins}`;
+    }else{
+        return `${hrs}:${mins}`;
+    }
+}
+
+
+

@@ -1,7 +1,12 @@
-const { sequelize, Users, Expenses, Payments, ForgotPasswordRequests, DailyTotalExpenses } = require('../models');
+const { sequelize, Users, Expenses, Payments, ForgotPasswordRequests, DailyTotalExpenses, Downloads } = require('../models');
 const sendResponse = require("../utils/sendResponse");
 const helperFunctions = require("../services/helperFunctions");
-const { Op } = require("sequelize")
+const s3Services = require("../services/s3Services");
+const { Op } = require("sequelize");
+const { raw } = require('mysql2');
+const config = require("../config");
+const BUCKET_NAME = config.BUCKET_NAME;
+const AWS_REGION = config.AWS_REGION;
 
 async function getLeaderboard(req, res) {
     try {
@@ -34,7 +39,8 @@ async function getReportOfExpenses(req, res) {
                     UserId: userId,
                     createdAt: { [Op.between]: [startDate, endDate] }
                 },
-                attributes: { exclude: ["UserId"] }
+                attributes: ["amount", "description", "category", "createdAt"],
+                raw: true
             })
         }
 
@@ -44,14 +50,22 @@ async function getReportOfExpenses(req, res) {
                     UserId: userId,
                     date: { [Op.between]: [startDate, endDate] }
                 },
-                attributes: { exclude: ["UserId"] }
+                attributes: ["totalAmount", "date"],
+                raw: true
             })
         }
-
         if (!expenses.length) {
-            return sendResponse.ok(res, "No expenses for selected duration found!", [])
+            return sendResponse.ok(res, `No expenses for ${duration} duration found!`, [])
         }
-        return sendResponse.ok(res, `${duration} expenses fetched`, expenses);
+        const reportFileName = `report-${Date.now()}-${duration}-${userId}`;
+        let reportFileUrl = "";
+        const awsRes = await s3Services.uploadFileToS3(reportFileName, expenses);
+        if (!awsRes) {
+            throw new Error("Report file upload to S3 failed!");
+        }
+        reportFileUrl = `https://${BUCKET_NAME}.s3.${AWS_REGION}.amazonaws.com/${reportFileName}.csv`;
+        const download = await Downloads.create({ url: reportFileUrl, UserId: userId });
+        return sendResponse.ok(res, `${duration} expenses fetched`, [expenses, reportFileUrl]);
 
     } catch (error) {
         console.log("Error: getReportOfExpenses", error.message);
@@ -59,7 +73,23 @@ async function getReportOfExpenses(req, res) {
     }
 }
 
+async function getPreviousDownloads(req,res) {
+    const userId = req.userId;
+    try {
+        const downloads = await Downloads.findAll({ where: { UserId: userId } });
+        if(downloads.length > 0){
+            return sendResponse.ok(res, "Fetched previous downloads!", downloads);
+        }else{
+            return sendResponse.ok(res, "No previous downloads found!", []);
+        }
+    } catch (error) {
+        console.log("Error: getPreviousDownloads", error.message);
+        return sendResponse.serverError(res, "Getting previous downloads failed!");
+    }
+}
+
 module.exports = {
     getLeaderboard,
-    getReportOfExpenses
+    getReportOfExpenses,
+    getPreviousDownloads
 }

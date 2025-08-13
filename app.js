@@ -4,6 +4,10 @@ const config = require("./config");
 const PORT= config.port;
 const cors = require('cors');
 const path = require('path');
+const morgan = require("morgan");
+const fs = require('fs');
+
+const accessLogStream = fs.createWriteStream(path.join(__dirname, "access.log"), {flags : "a"});
 
 const userRoutes = require("./routes/userRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
@@ -13,6 +17,7 @@ const featuresRoutes = require("./routes/premiumFeaturesRoutes");
 const {sequelize} = require('./models');
 
 app.use(cors());
+app.use(morgan('combined', { stream: accessLogStream }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
