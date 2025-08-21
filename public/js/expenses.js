@@ -1,9 +1,12 @@
+// const host = "localhost";
+const host = "3.108.126.137";
 
-const url = "http://3.108.126.137:5000/expense"
-const premiumUrl = "http://3.108.126.137:5000/feature"
+const url = `http://${host}:5000/expense`
+const premiumUrl = `http://${host}:5000/feature`
 let editExpenseId = null;
 const token = localStorage.getItem("token");
 const isPremiumUser = localStorage.getItem("isPremiumUser");
+const userName = localStorage.getItem("userName");
 let itemsPerPage = localStorage.getItem("itemsPerPage") || 2;
 let totalCount;
 let currentPage = 1;
@@ -12,6 +15,7 @@ let totalPages;
 const cashfree = Cashfree({ mode: "sandbox" });
 
 document.addEventListener('DOMContentLoaded', () => {
+    showHeaders();
     fetchExpensesByPageNo(currentPage, itemsPerPage);
     handlePremiumDiv();
     fetchTotalCountOfExpenses();
@@ -121,7 +125,7 @@ function handlePremiumDiv() {
 
 async function buyPremiumHandler() {
     try {
-        const result = await axios.post("http://3.108.126.137:5000/premium/buy", { orderId: "XYZ" }, { headers: { token } });
+        const result = await axios.post(`http://${host}:5000/premium/buy`, { orderId: "XYZ" }, { headers: { token } });
         const { message: paymentStatusMessage, data: paymentDetails } = result.data;
         console.log(paymentStatusMessage);
         const { paymentSessionId, orderId } = paymentDetails;
@@ -137,7 +141,7 @@ async function buyPremiumHandler() {
             return;
         }
 
-        const orderResult = await axios.get("http://3.108.126.137:5000/premium/status/" + orderId, { headers: { token } });
+        const orderResult = await axios.get(`http://${host}:5000/premium/status/` + orderId, { headers: { token } });
         const { message: orderStatusMessage, data } = orderResult.data;
         const orderStatus = data.orderStatus;
 
@@ -165,7 +169,7 @@ async function buyPremiumHandler() {
 
 async function fetchLeaderboardData(){
     try {
-        const result = await axios.get("http://3.108.126.137:5000/feature/leaderboard", { headers: { token } });
+        const result = await axios.get(`http://${host}:5000/feature/leaderboard`, { headers: { token } });
         const { message, data: leaderboardData } = result.data;
         showLeaderboard(leaderboardData)
     } catch (error) {
@@ -208,6 +212,22 @@ async function fetchPreviousDownloads() {
 
 
 // RENDERING DATA AND UI UPDATE FUNCTIONS:
+
+function showHeaders(){
+    const headers = document.getElementById("header-container");
+    headers.innerHTML = `
+        <p>
+        Hello ${userName}!
+        </p>
+    `;
+
+    const logoutBtn = createButton("Logout", "logout-btn");
+    logoutBtn.addEventListener("click", () => {
+        localStorage.clear();
+        window.location.href = `http://${host}:5000/user/login`;
+    })
+    headers.appendChild(logoutBtn);
+}
 
 function createExpenseItem(expense) {
     const listItem = document.createElement('li');

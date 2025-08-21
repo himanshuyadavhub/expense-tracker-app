@@ -2,6 +2,7 @@ const express = require('express');
 const app = express();
 const config = require("./config");
 const PORT= config.port;
+const HOST = config.host;
 const cors = require('cors');
 const path = require('path');
 const morgan = require("morgan");
@@ -21,13 +22,15 @@ app.use(morgan('combined', { stream: accessLogStream }));
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
+app.get("/", (req, res) => {
+    res.redirect("/user/login");
+})
+
 app.use("/user", userRoutes);
 app.use("/expense", expenseRoutes);
 app.use("/premium", membershipRoutes);
 app.use("/feature", featuresRoutes);
-app.get("/", (req, res) => {
-    res.json({message:"Respose after creating payment order"});
-})
+
 sequelize.sync({alter:true}).then(res => {
     console.log("Table synced")
 }).catch(err => {
@@ -38,5 +41,5 @@ app.listen(PORT, (err) => {
         console.log("Server is not running", err.message);
         return;
     }
-    console.log(`Server is running on http://localhost:${PORT}`);
+    console.log(`Server is running on http://${HOST}:${PORT}`);
 })

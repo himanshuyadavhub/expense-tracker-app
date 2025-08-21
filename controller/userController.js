@@ -64,7 +64,7 @@ async function loginUser(req, res) {
             return sendResponse.notAuthorized(res, "Incorrect password!");
         }
         const token = jwt.sign({ userId: user.id }, config.jwt_key)
-        return sendResponse.ok(res, "User logged In", { token, isPremiumUser: user.isPremium });
+        return sendResponse.ok(res, "User logged In", { token, isPremiumUser: user.isPremium, userName:user.userName });
     } catch (error) {
         console.log("Error: loginUser", error.message);
         sendResponse.serverError(res, "Server Error: User login failed!")
