@@ -1,4 +1,4 @@
-const url = "http://localhost:5000/user"
+const url = "http://3.108.126.137:5000/user"
 
 async function handleLoginFormSubmit(event) {
     try {
@@ -11,7 +11,7 @@ async function handleLoginFormSubmit(event) {
         console.log(message);
         localStorage.setItem("token", data.token);
         localStorage.setItem("isPremiumUser", data.isPremiumUser);
-        window.location.href = "http://localhost:5000/expense";
+        window.location.href = "http://3.108.126.137:5000/expense";
         return;
     } catch (error) {
         handleErrorMessage(error);

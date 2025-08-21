@@ -1,5 +1,5 @@
 
-const url = "http://localhost:5000/user"
+const url = "http://3.108.126.137:5000/user"
 async function handleFormSubmit(event){
     try {
         event.preventDefault();
