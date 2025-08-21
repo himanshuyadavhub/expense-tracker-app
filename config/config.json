@@ -1,11 +1,11 @@
 {
   "development": {
-    "username": "root",
-    "password": "Server123",
-    "database": "expensesapp",
-    "host": "localhost",
+    "username": "admin",
+    "password": "Himanshu9536",
+    "database": "expense-tracker-db",
+    "host": "expense-tracker-db.croqkgww6wet.ap-south-1.rds.amazonaws.com",
     "dialect": "mysql",
-    "logging":false
+    "logging":false 
   },
   "test": {
     "username": "root",
@@ -15,10 +15,14 @@
     "dialect": "mysql"
   },
   "production": {
-    "username": "root",
-    "password": null,
-    "database": "database_production",
-    "host": "127.0.0.1",
-    "dialect": "mysql"
+    "username": "admin",
+    "password": "Himanshu9536",
+    "database": "expense-tracker-db",
+    "host": "expense-tracker-db.croqkgww6wet.ap-south-1.rds.amazonaws.com",
+    "dialect": "mysql",
+    "logging":false
   }
 }
+
+
+
