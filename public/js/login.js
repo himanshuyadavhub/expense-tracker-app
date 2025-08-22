@@ -14,7 +14,7 @@ async function handleLoginFormSubmit(event) {
         console.log(message);
 
         await setLocalStorageItem("token", data.token);
-        await setLocalStorageItem("isPremiumUser", data.isPremiumUser);
+        await setLocalStorageItem("isPremiumUser", String(data.isPremiumUser));
         await setLocalStorageItem("userName", data.userName);
 
 
