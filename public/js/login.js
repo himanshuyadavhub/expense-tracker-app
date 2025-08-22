@@ -14,7 +14,7 @@ async function handleLoginFormSubmit(event) {
         console.log(message);
 
         await setLocalStorageItem("token", data.token);
-        await setLocalStorageItem("isPremiumUser", String(data.isPremiumUser));
+        await setLocalStorageItem("isPremiumUser", data.isPremiumUser);
         await setLocalStorageItem("userName", data.userName);
 
 
@@ -61,8 +61,8 @@ function handleErrorMessage(error) {
 function setLocalStorageItem(key, value) {
     return new Promise((resolve, reject) => {
         try {
-            localStorage.setItem(key, value);
-            if (localStorage.getItem(key) === value) {
+            localStorage.setItem(key, String(value));
+            if (localStorage.getItem(key) === String(value)) {
                 resolve();
             } else {
                 reject(new Error(`Failed to set ${key} in localStorage.`));
