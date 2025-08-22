@@ -68,7 +68,7 @@ async function fetchExpensesByPageNo(pageNo, itemsPerPage) {
     try {
         const result = await axios.get(url + `/get?page=${pageNo}&limit=${itemsPerPage}`, { headers: { token } });
         const { message, data: expenses } = result.data;
-
+        console.log("a random console",message)
         showExpenses(expenses);
     } catch (error) {
         console.log("Error: fetchExpensesByPageNo")
