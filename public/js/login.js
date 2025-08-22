@@ -1,7 +1,7 @@
 // const host = "localhost";
 const host = "3.108.126.137";
 
-const url = `http://${host}:5000/user`
+const url = `http://${host}/user`
 
 async function handleLoginFormSubmit(event) {
     try {
@@ -18,7 +18,7 @@ async function handleLoginFormSubmit(event) {
         await setLocalStorageItem("userName", data.userName);
 
 
-        window.location.href = `http://${host}:5000/expense`;
+        window.location.href = `http://${host}/expense`;
 
         return;
     } catch (error) {

@@ -2,7 +2,7 @@
 const host = "3.108.126.137";
 
 
-const url = `http://${host}:5000/user`
+const url = `http://${host}/user`
 async function handleFormSubmit(event){
     try {
         event.preventDefault();

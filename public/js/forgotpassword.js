@@ -17,11 +17,11 @@ async function handleResetPasswordFormSubmit(event){
         const requestId = urlSplited[urlSplited.length-1];
         
 
-        const res = await axios.post(`http://${host}:5000/user/updatepassword/${requestId}`, {password});
+        const res = await axios.post(`http://${host}/user/updatepassword/${requestId}`, {password});
         const {message} = res.data;
         console.log(message);
         alert("Password updated");
-        window.location.href = `http://${host}:5000/user/login`;
+        window.location.href = `http://${host}/user/login`;
         return;
     } catch (error) {
         handleErrorMessage(error);
