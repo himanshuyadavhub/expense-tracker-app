@@ -15,7 +15,12 @@ async function handleLoginFormSubmit(event) {
         localStorage.setItem("token", data.token);
         localStorage.setItem("isPremiumUser", data.isPremiumUser);
         localStorage.setItem("userName", data.userName);
-        window.location.href = `http://${host}:5000/expense`;
+
+        if(localStorage.getItem("token")){
+            window.location.href = `http://${host}:5000/expense`;
+        }else{
+            throw new Error("Login failed!");
+        }
         return;
     } catch (error) {
         handleErrorMessage(error);

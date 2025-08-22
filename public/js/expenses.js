@@ -15,7 +15,6 @@ let totalPages;
 const cashfree = Cashfree({ mode: "sandbox" });
 
 document.addEventListener('DOMContentLoaded', () => {
-    console.log("Checking for token", token)
     showHeaders();
     fetchExpensesByPageNo(currentPage, itemsPerPage);
     handlePremiumDiv();
