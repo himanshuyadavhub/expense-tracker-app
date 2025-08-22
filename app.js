@@ -23,7 +23,6 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
-    console.log("a random console")
     res.redirect("/user/login");
 })
 
