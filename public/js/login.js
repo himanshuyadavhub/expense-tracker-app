@@ -12,15 +12,14 @@ async function handleLoginFormSubmit(event) {
         const res = await axios.post(url + "/login", { email, password });
         const { message, data } = res.data;
         console.log(message);
-        localStorage.setItem("token", data.token);
-        localStorage.setItem("isPremiumUser", data.isPremiumUser);
-        localStorage.setItem("userName", data.userName);
 
-        if(localStorage.getItem("token")){
-            window.location.href = `http://${host}:5000/expense`;
-        }else{
-            throw new Error("Login failed!");
-        }
+        await setLocalStorageItem("token", data.token);
+        await setLocalStorageItem("isPremiumUser", data.isPremiumUser);
+        await setLocalStorageItem("userName", data.userName);
+
+
+        window.location.href = `http://${host}:5000/expense`;
+
         return;
     } catch (error) {
         handleErrorMessage(error);
@@ -57,4 +56,19 @@ function handleErrorMessage(error) {
     } else {
         console.log(`Error: ${error.message}`);
     }
+}
+
+function setLocalStorageItem(key, value) {
+    return new Promise((resolve, reject) => {
+        try {
+            localStorage.setItem(key, value);
+            if (localStorage.getItem(key) === value) {
+                resolve();
+            } else {
+                reject(new Error(`Failed to set ${key} in localStorage.`));
+            }
+        } catch (err) {
+            reject(err);
+        }
+    });
 }
