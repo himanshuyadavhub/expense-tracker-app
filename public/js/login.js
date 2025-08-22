@@ -63,6 +63,7 @@ function setLocalStorageItem(key, value) {
         try {
             localStorage.setItem(key, String(value));
             if (localStorage.getItem(key) === String(value)) {
+                console.log(`Added${key} to LS`)
                 resolve();
             } else {
                 reject(new Error(`Failed to set ${key} in localStorage.`));
