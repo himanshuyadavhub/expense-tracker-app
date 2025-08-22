@@ -36,6 +36,7 @@ sequelize.sync({alter:true}).then(res => {
 }).catch(err => {
     console.log("Table not synced", err.message);
 })
+
 app.listen(PORT, "0.0.0.0", (err) => {
     if (err) {
         console.log("Server is not running", err.message);
