@@ -1,4 +1,4 @@
-// const host = "localhost";
+// const host = "localhost:5000";
 const host = "3.108.126.137";
 
 const url = `http://${host}/expense`
@@ -104,8 +104,9 @@ function changeItemsPerPage(event) {
 
 // Functions for handling premium features
 function enablePremiumFeatures() {
-    document.getElementById("leaderboard-container").style = "block";
-    document.getElementById("report-container").style = "block";
+    document.querySelector(".premium-features-container").style.display= "block";
+    document.getElementById("premium-actions-container").style.display = "flex";
+
 }
 
 function handlePremiumDiv() {
@@ -167,8 +168,14 @@ async function buyPremiumHandler() {
     }
 }
 
-async function fetchLeaderboardData(){
+async function fetchLeaderboardData() {
     try {
+        document.getElementById("leaderboard-container").style.display = "block";
+        document.getElementById("report-input-container").style.display = "none";
+        document.getElementById("report-expenses").style.display = "none";
+        document.getElementById("previous-downloads").style.display = "none";
+
+
         const result = await axios.get(`http://${host}/feature/leaderboard`, { headers: { token } });
         const { message, data: leaderboardData } = result.data;
         showLeaderboard(leaderboardData)
@@ -179,6 +186,11 @@ async function fetchLeaderboardData(){
 
 async function reportGenerateHandler() {
     try {
+        document.getElementById("leaderboard-container").style.display = "none";
+        document.getElementById("report-input-container").style.display = "none";
+        document.getElementById("report-expenses").style.display = "block";
+        document.getElementById("previous-downloads").style.display = "none";
+
         const duration = document.getElementById("duration").value;
         const res = await axios.get(premiumUrl + `/report?duration=${duration}`, { headers: { token } });
         const { message, data } = res.data;
@@ -213,20 +225,19 @@ async function fetchPreviousDownloads() {
 
 // RENDERING DATA AND UI UPDATE FUNCTIONS:
 
-function showHeaders(){
-    const headers = document.getElementById("header-container");
-    headers.innerHTML = `
+function showHeaders() {
+    const userDetailSpan = document.getElementById("user-detail");
+    userDetailSpan.innerHTML = `
         <p>
         Hello ${userName}!
         </p>
     `;
 
-    const logoutBtn = createButton("Logout", "logout-btn");
-    logoutBtn.addEventListener("click", () => {
-        localStorage.clear();
-        window.location.href = `http://${host}/user/login`;
-    })
-    headers.appendChild(logoutBtn);
+}
+
+function logout() {
+    localStorage.clear();
+    window.location.href = `http://${host}/user/login`;
 }
 
 function createExpenseItem(expense) {
@@ -239,15 +250,18 @@ function createExpenseItem(expense) {
         Description: ${expense.description}<br>
         </p>
     `;
+    const listBtnContainer = document.createElement('div');
+    listBtnContainer.classList.add('list-btn-container');
 
     const editBtn = createButton("Edit", "edit-btn");
     editBtn.addEventListener('click', () => editExpenseHandler(expense));
-    listItem.appendChild(editBtn);
+    listBtnContainer.appendChild(editBtn);
 
     const deleteBtn = createButton("Delete", "delete-btn");
     deleteBtn.addEventListener('click', () => deleteExpenseHandler(expense.id));
-    listItem.appendChild(deleteBtn);
+    listBtnContainer.appendChild(deleteBtn);
 
+    listItem.appendChild(listBtnContainer);
     return listItem;
 }
 
@@ -305,6 +319,13 @@ async function showLeaderboard(leaderboardData) {
     }
 }
 
+function takeReportInput() {
+    document.getElementById("leaderboard-container").style.display = "none";
+    document.getElementById("report-input-container").style.display = "flex";
+    document.getElementById("report-expenses").style.display = "none";
+    document.getElementById("previous-downloads").style.display = "none";
+}
+
 function createReportRows(expense, duration) {
     const tableRow = document.createElement('tr');
     if (duration === "weekly") {
@@ -354,9 +375,9 @@ function populateReportTable(expenses, duration) {
 }
 
 function createDownloadItem(download) {
-    const {url:reportFileUrl, createdAt} = download;
+    const { url: reportFileUrl, createdAt } = download;
     const listItem = document.createElement('li');
-    
+
     const formattedDate = formatDate(createdAt);
     const formattedTime = formatTime(createdAt);
 
@@ -371,6 +392,13 @@ function createDownloadItem(download) {
     listItem.appendChild(downloadBtn);
 
     return listItem;
+}
+
+function showDownloadHistory() {
+    document.getElementById("leaderboard-container").style.display = "none";
+    document.getElementById("report-input-container").style.display = "none";
+    document.getElementById("report-expenses").style.display = "none";
+    document.getElementById("previous-downloads").style.display = "block";
 }
 
 function showDownloads(downlaods) {
@@ -393,11 +421,12 @@ function showDownloads(downlaods) {
 // EVENT BINDING FUNCTIONS:
 
 function applyEventListeners() {
+    document.getElementById("logout-btn").addEventListener("click", logout);
     document.getElementById("next-btn").addEventListener("click", nextButtonHandler);
     document.getElementById("prev-btn").addEventListener("click", prevButtonHandler);
     document.getElementById("items-per-page").addEventListener("change", (event) => changeItemsPerPage(event));
     document.getElementById("items-per-page").value = itemsPerPage;
-    document.getElementById("report-generate-btn").addEventListener('click', reportGenerateHandler);
+    document.getElementById("report-download-btn").addEventListener('click', reportGenerateHandler);
 }
 
 
@@ -489,19 +518,19 @@ function createButton(text, className) {
 }
 
 
-function formatDate(defaultDate){
+function formatDate(defaultDate) {
     const date = new Date(defaultDate);
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`
 }
 
-function formatTime(defaultDate){
+function formatTime(defaultDate) {
     const date = new Date(defaultDate);
     const hrs = date.getHours();
     const mins = date.getMinutes();
 
-    if(hrs < 10){
+    if (hrs < 10) {
         return `0${hrs}:${mins}`;
-    }else{
+    } else {
         return `${hrs}:${mins}`;
     }
 }

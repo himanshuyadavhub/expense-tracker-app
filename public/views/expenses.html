@@ -12,31 +12,35 @@
 <body>
 
     <div class="header-container" id="header-container">
-    </div>
-    <div class="expenses-form-container">
-        <form onsubmit="handleFormSubmit(event)">
-            <label for="amount">Amount: </label>
-            <input type="number" name="amount" id="amount" required>
-            <label for="category">Category:</label>
-            <select name="category" id="category" required>
-                <option value="" disabled selected>--Select category--</option>
-                <option value="food">Food</option>
-                <option value="fuel">Fuel</option>
-                <option value="groceries">Groceries</option>
-                <option value="entertainment">Entertainment</option>
-                <option value="transport">Transport</option>
-                <option value="salary">Salary</option>
-                <option value="other">Others</option>
-            </select>
-            <label for="description">Description: </label>
-            <input type="text" name="description" id="description">
-
-            <button type="submit" id="submit-btn">Add Expense</button>
-        </form>
+        <span id="user-detail"></span>
+        <!-- Div for buy premium button -->
+        <div class="premium-container" id="premium-container"></div>
+        <button id="logout-btn">Logout</button>
     </div>
 
-<!-- Div for buy premium button -->
-    <div class="premium-container" id="premium-container"></div>
+    <div class="expense-input">
+        <div class="expenses-form-container">
+            <form onsubmit="handleFormSubmit(event)">
+                <label for="amount">Amount: </label>
+                <input type="number" name="amount" id="amount" required>
+                <label for="category">Category:</label>
+                <select name="category" id="category" required>
+                    <option value="" disabled selected>--Select category--</option>
+                    <option value="food">Food</option>
+                    <option value="fuel">Fuel</option>
+                    <option value="groceries">Groceries</option>
+                    <option value="entertainment">Entertainment</option>
+                    <option value="transport">Transport</option>
+                    <option value="salary">Salary</option>
+                    <option value="other">Others</option>
+                </select>
+                <label for="description">Description: </label>
+                <input type="text" name="description" id="description">
+
+                <button type="submit" id="submit-btn">Add Expense</button>
+            </form>
+        </div>
+    </div>
 
     <div class="expenses-container">
         <h2>Expenses: </h2>
@@ -56,33 +60,39 @@
     </div>
 
 
-    <div class="premium-features-container">
+    <div class="premium-features-container" style="display: none;">
+        <div class="premium-actions-container" id="premium-actions-container" style="display: none;">
+            <button id="leaderboard-btn" class="premium-actions-btn" onclick="fetchLeaderboardData()">
+                Show Leaderboard
+            </button>
+            <button id="report-generate-btn" class="premium-actions-btn" onclick="takeReportInput()">Generate
+                Report</button>
+            <button id="report-history-btn" class="premium-actions-btn" onclick="showDownloadHistory()">History</button>
+        </div>
         <div class="leaderboard-container" id="leaderboard-container" style="display: none;">
-            <h2>Leaderboard:</h2>
             <ul id="leaderboard-list"></ul>
-            <button id="leaderboard-btn" class="leaderboard-btn" onclick="fetchLeaderboardData()">Show Leaderboard</button>
         </div>
 
-        <div class="report-container" id="report-container" style="display: none;">
-            <h3>Generate your expenses report</h3>
+        <div class="report-input-container" id="report-input-container" style="display: none;">
             <label for="duration">Choose duration:</label>
             <select name="duration" id="duration">
                 <!-- <option value="today">Today</option> -->
                 <option value="weekly">Weekly</option>
                 <option value="monthly">Monthly</option>
             </select>
-            <button id="report-generate-btn">Generate</button>
-
-            <div class="report-expenses" id="report-expenses">
-                <table class="report-table" id="report-table">
-                </table>
-                <div class="donwload-btn-container" id="download-btn-container"></div>
-            </div>
-            <div class="previous-downloads" id="previous-downloads">
-                <h3>Previous Downloads:</h3>
-                <ul id="downloads-list"></ul>
-            </div>
+            <button id="report-download-btn">Download</button>
         </div>
+
+        <div class="report-expenses" id="report-expenses" style="display: none;">
+            <table class="report-table" id="report-table">
+            </table>
+            <div class="donwload-btn-container" id="download-btn-container"></div>
+        </div>
+        <div class="previous-downloads" id="previous-downloads" style="display: none;">
+            <h3>Previous Downloads:</h3>
+            <ul id="downloads-list"></ul>
+        </div>
+
 
     </div>
 

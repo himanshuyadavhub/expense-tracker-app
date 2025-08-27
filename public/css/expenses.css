@@ -1,15 +1,27 @@
 /* Global Styles */
+
+html{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
 body {
     font-family: "Inter", "Segoe UI", Arial, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #e2e8f0; /* darker slate background */
-    color: #111827; /* darker text */
+    background-color: #313131;
+    /* darker slate background */
+    color: #111827;
+    /* darker text */
     line-height: 1.6;
+    width: 80%;
+    
 }
 
-h2, h3 {
-    color: #0f172a; 
+h2,
+h3 {
+    text-align: center;
+    color: #0f172a;
     margin-bottom: 12px;
     font-weight: 600;
 }
@@ -19,13 +31,28 @@ h2, h3 {
 .expenses-container,
 .premium-features-container,
 .header-container {
+    margin-top: 5px;
     margin-bottom: 28px;
     padding: 20px;
-    background-color: #cbd5e1; /* darker gray-blue */
+    background-color: #cbd5e1;
+    /* darker gray-blue */
     border-radius: 12px;
     box-shadow: 0 2px 6px rgba(15, 23, 42, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
+
+.expense-input{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.expenses-form-container{
+    width: 60%;
+}
+
+
+
 
 .expenses-form-container:hover,
 .expenses-container:hover,
@@ -44,9 +71,11 @@ h2, h3 {
     font-weight: 600;
 }
 
+
+
 /* Logout Button */
-.logout-btn {
-    background-color: #334155; /* darker gray */
+#logout-btn {
+    background-color: #b72626;
     color: #f8fafc;
     border: none;
     padding: 8px 16px;
@@ -55,6 +84,7 @@ h2, h3 {
     font-weight: 500;
     font-size: 0.9rem;
 }
+
 .logout-btn:hover {
     background-color: #1e293b;
 }
@@ -122,6 +152,7 @@ form select:focus {
 /* Edit & Delete Buttons */
 .edit-btn,
 .delete-btn {
+    margin: 5px;
     padding: 6px 12px;
     border: none;
     border-radius: 6px;
@@ -134,6 +165,7 @@ form select:focus {
     background-color: #eab308;
     color: #111;
 }
+
 .edit-btn:hover {
     background-color: #ca8a04;
 }
@@ -142,6 +174,7 @@ form select:focus {
     background-color: #dc2626;
     color: #fff;
 }
+
 .delete-btn:hover {
     background-color: #b91c1c;
 }
@@ -171,16 +204,22 @@ button:disabled {
 
 /* Pagination container */
 .pagination {
-    margin-top: 20px;
     display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
     gap: 10px;
     flex-wrap: wrap;
 }
 
 /* Premium Container */
 .premium-container p {
+    background-color: #85adde;
+    padding-left: 30px;
+    padding-right: 30px;
+    border-radius: 6px;
     font-weight: 600;
-    color: #059669;
+    color: blue;
 }
 
 /* Buy Premium Button */
@@ -193,6 +232,7 @@ button:disabled {
     cursor: pointer;
     font-weight: 500;
 }
+
 .buyPremium-btn:hover {
     background-color: #5b21b6;
 }
@@ -211,18 +251,64 @@ button:disabled {
     border-radius: 6px;
 }
 
-.leaderboard-btn {
+.premium-actions-container {
+    justify-content: center;
+    align-items: center;
+}
+
+.premium-actions-btn {
     background-color: #0284c7;
     color: #fff;
+    margin: 5px;
     padding: 8px 16px;
     border: none;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
 }
-.leaderboard-btn:hover {
+
+.premium-actions-btn:hover {
     background-color: #0369a1;
 }
+
+.report-input-container {
+    justify-content: center;
+    align-items: center;
+}
+
+.report-input-container label {
+    font-weight: 500;
+    margin: 8px 0px 8px 8px;
+    padding: 10px;
+    display: block;
+}
+
+
+.report-input-container select {
+    margin: 8px;
+    padding: 10px;
+    border: 1px solid #94a3b8;
+    border-radius: 6px;
+    width: 25%;
+    font-size: 0.95rem;
+    background-color: #f1f5f9;
+}
+
+
+.report-input-container select:focus {
+    border-color: #eb8825;
+    outline: none;
+    background-color: #fff;
+}
+
+#report-download-btn {
+    margin: 8px;
+    background-color: #0d9488;
+    padding: 10px;
+    border-radius: 6px;
+    border: none
+}
+
 
 /* Report Table */
 .report-table {
@@ -255,12 +341,14 @@ button:disabled {
     cursor: pointer;
     margin-top: 12px;
 }
+
 .download-btn:hover {
     background-color: #0f766e;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
+
     .expenses-form-container,
     .expenses-container,
     .premium-features-container {
