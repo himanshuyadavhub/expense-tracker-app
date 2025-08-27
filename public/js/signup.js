@@ -1,5 +1,4 @@
-// const host = "localhost:5000";
-const host = "3.108.126.137";
+const host = "localhost:5000";
 
 
 const url = `http://${host}/user`
