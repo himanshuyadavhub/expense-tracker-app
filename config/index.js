@@ -19,28 +19,3 @@ const config = {
 }
 
 module.exports = config;
-
-// {
-//   "development": {
-//     "username": "root",
-//     "password": "Server123",
-//     "database": "expensesapp",
-//     "host": "localhost",
-//     "dialect": "mysql",
-//     "logging":false
-//   },
-//   "test": {
-//     "username": "root",
-//     "password": null,
-//     "database": "database_test",
-//     "host": "127.0.0.1",
-//     "dialect": "mysql"
-//   },
-//   "production": {
-//     "username": "root",
-//     "password": null,
-//     "database": "database_production",
-//     "host": "127.0.0.1",
-//     "dialect": "mysql"
-//   }
-// }
